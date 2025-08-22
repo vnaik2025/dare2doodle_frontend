@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-image: url(./assets/background_image.png);
+  background-repeat: no-repeat;
+  background-size:cover;
+  height:100vh;
+
+}
+
+.container {
+  @apply max-w-7xl mx-auto px-4;
+}
