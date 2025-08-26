@@ -2,7 +2,6 @@
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
-    extend: {
       colors: {
         primary: '#6366f1', // Softer indigo for buttons/CTAs in dark mode
         secondary: '#f472b6', // Lighter pink for accents in dark mode
@@ -13,10 +12,7 @@ export default {
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
       },
-      backgroundImage: {
-        'doodle-pattern': "url('/src/assets/doodle-bg.png')",
-      },
+   
     },
-  },
   plugins: [],
 };

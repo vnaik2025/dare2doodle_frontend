@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { getNotifications  } from '../apis/notificationsApi';
+import { getNotifications } from '../apis/notificationsApi';
 import type { Notification } from '../apis/notificationsApi';
 
 import NotificationCard from '../components/features/Notification';
@@ -16,14 +16,18 @@ const Notifications = () => {
   if (error) return <ErrorMessage message="Failed to load notifications" />;
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-6">Notifications</h2>
+    <div className="px-4 py-6  mx-auto">
+      <h2 className="text-xl font-semibold mb-6 text-zinc-100">Notifications</h2>
       {notifications?.length ? (
-        notifications.map((notification) => (
-          <NotificationCard key={notification.id} notification={notification} />
-        ))
+        <div className="space-y-3">
+          {notifications.map((notification) => (
+            <NotificationCard key={notification.id} notification={notification} />
+          ))}
+        </div>
       ) : (
-        <p className="text-gray-500">No notifications found.</p>
+        <p className="text-sm text-zinc-500 text-center">
+          No notifications found.
+        </p>
       )}
     </div>
   );
