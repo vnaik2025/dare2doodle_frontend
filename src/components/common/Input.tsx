@@ -7,7 +7,7 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 const Input = ({ register, error, className = '', ...props }: InputProps) => (
-  <div className="mb-4">
+  <div className="mb-0">
     <input
       className={`w-full p-2 border rounded bg-black text-white border-gray-700 focus:bg-black/10 focus:outline-none focus:ring-2 focus:ring-primary ${error ? 'border-error' : ''} ${className}`}
       {...register}

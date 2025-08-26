@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import Card from '../common/Card';
 import type { Challenge } from '../../apis/challengesApi';
 
 interface ChallengeCardProps {
@@ -7,21 +6,41 @@ interface ChallengeCardProps {
 }
 
 const ChallengeCard = ({ challenge }: ChallengeCardProps) => (
-  console.log("challenge", challenge.$id),
-  <Card className="bg-gray-900 bg-opacity-500 backdrop-blur-sm">
-    <Link to={`/challenge/${challenge.$id}`}>
-      <h3 className="text-xl font-semibold text-white">{challenge.title}</h3>
-      <p className="text-gray-300">{challenge.description}</p>
-      {challenge.imageUrl && (
-        <img src={challenge.imageUrl} alt={challenge.title} className="mt-4 max-w-xs rounded" />
-      )}
-      <div className="mt-2 flex flex-wrap gap-2">
-        {challenge.tags?.map((tag) => (
-          <span key={tag} className="bg-gray-700 text-white text-sm px-2 py-1 rounded">{tag}</span>
-        ))}
+  <Link
+    to={`/challenge/${challenge.$id}`}
+    className="group relative flex flex-col bg-gray-900/70 rounded-2xl border border-gray-800 backdrop-blur-md p-4 transition-transform hover:scale-[1.02] hover:border-gray-700 shadow-lg"
+  >
+    {/* Thumbnail */}
+    {challenge.imageUrl && (
+      <div className="w-full h-44 overflow-hidden rounded-xl mb-3">
+        <img
+          src={challenge.imageUrl}
+          alt={challenge.title}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        />
       </div>
-    </Link>
-  </Card>
+    )}
+
+    {/* Title + Description */}
+    <h3 className="text-lg font-semibold text-white truncate group-hover:text-amber-400 transition-colors">
+      {challenge.title}
+    </h3>
+    <p className="text-gray-400 text-sm mt-1 line-clamp-2">
+      {challenge.description}
+    </p>
+
+    {/* Tags */}
+    <div className="mt-3 flex flex-wrap gap-1">
+      {challenge.tags?.map((tag) => (
+        <span
+          key={tag}
+          className="bg-gray-800/70 border border-gray-700 text-gray-300 text-xs px-2 py-0.5 rounded-full group-hover:bg-gray-700 transition-colors"
+        >
+          {tag}
+        </span>
+      ))}
+    </div>
+  </Link>
 );
 
 export default ChallengeCard;

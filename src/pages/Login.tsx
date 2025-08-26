@@ -163,7 +163,7 @@ const Login = () => {
       ref={vantaRef}
       className="min-h-screen flex items-center justify-center"
     >
-      <div className="w-full max-w-sm p-6 rounded-xl border border-gray-800 shadow-xl bg-transperent backdrop-blur-sm">
+      <div className="w-full max-w-sm p-6 rounded-xl border border-gray-800  bg-black ">
         {/* Logo */}
         <div className="flex justify-center mb-4">
           <img src={d2dlog} alt="daretodoodle_logo.png" className="w-24" />
