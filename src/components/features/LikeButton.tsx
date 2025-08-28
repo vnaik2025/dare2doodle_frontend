@@ -2,13 +2,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createLike, deleteLike, getLikes } from '../../apis/likesApi';
 import { FaHeart, FaRegHeart } from 'react-icons/fa';
 
-interface Like {
-  id: string;
-  userId: string;
-  targetId: string;
-  targetType: 'comment' | 'challenge';
-}
-
 interface LikeButtonProps {
   targetId: string;
   targetType: 'comment' | 'challenge';
@@ -17,29 +10,23 @@ interface LikeButtonProps {
 const LikeButton = ({ targetId, targetType }: LikeButtonProps) => {
   const queryClient = useQueryClient();
 
-  const { data: likes = [] } = useQuery<Like[]>({
+  const { data: likesData } = useQuery<{ count: number; likedByMe: boolean }>({
     queryKey: ['likes', targetType, targetId],
-    queryFn: async () => {
-      const res = await getLikes(targetType, targetId);
-      return Array.isArray(res.data) ? res.data : []; // ✅ normalize
-    },
+    queryFn: () => getLikes(targetType, targetId).then(res => res.data),
   });
 
-  const userId = localStorage.getItem('userId');
-  const isLiked = likes.some((like) => like.userId === userId);
-
   const likeMutation = useMutation({
-    mutationFn: async () => createLike({ targetType, targetId }),
+    mutationFn: () => createLike(targetType, targetId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['likes', targetType, targetId] }),
   });
 
   const unlikeMutation = useMutation({
-    mutationFn: async () => deleteLike(targetType, targetId),
+    mutationFn: () => deleteLike(targetType, targetId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['likes', targetType, targetId] }),
   });
 
   const handleClick = () => {
-    if (isLiked) unlikeMutation.mutate();
+    if (likesData?.likedByMe) unlikeMutation.mutate();
     else likeMutation.mutate();
   };
 
@@ -51,12 +38,12 @@ const LikeButton = ({ targetId, targetType }: LikeButtonProps) => {
                  text-zinc-400 hover:text-red-400 transition-colors
                  hover:bg-zinc-800/50 disabled:opacity-50"
     >
-      {isLiked ? (
+      {likesData?.likedByMe ? (
         <FaHeart className="text-red-500 w-3.5 h-3.5" />
       ) : (
         <FaRegHeart className="w-3.5 h-3.5" />
       )}
-      <span className="text-[11px]">{likes.length}</span>
+      <span className="text-[11px]">{likesData?.count ?? 0}</span>
     </button>
   );
 };
