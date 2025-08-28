@@ -14,7 +14,7 @@ import Input from "../components/common/Input";
 import Button from "../components/common/Button";
 import Loader from "../components/common/Loader";
 import ErrorMessage from "../components/common/ErrorMessage";
-import { Paperclip  ,ChevronLeft} from "lucide-react";
+import { Paperclip, ChevronLeft } from "lucide-react";
 
 interface CommentForm {
   text: string;
@@ -213,7 +213,7 @@ const ChallengeDetail = () => {
           <div className="flex items-center justify-between">
             <div>
               <Link to="/" className="text-sm flex flex-row justify-items-start items-center text-zinc-400 hover:text-white">
-               <ChevronLeft/> <p>Back to feed</p>
+                <ChevronLeft /> <p>Back to feed</p>
               </Link>
               <h1 className="text-xl md:text-2xl font-semibold mt-2">
                 {(challenge as any).title || "Untitled"}
@@ -266,52 +266,52 @@ const ChallengeDetail = () => {
                         </div>
                       </div>
                     )}
-{/* input row */}
-<div className="flex items-center w-full gap-2">
-  {/* Input field (80%) */}
-  <div className="flex-[0.8]">
-    <Input
-      placeholder="Add a comment..."
-      register={register("text", {
-        required: "Comment is required",
-      })}
-      className="bg-zinc-800 text-sm w-full pr-10"
-    />
-  </div>
+                    {/* input row */}
+                    <div className="flex items-center w-full gap-2">
+                      {/* Input field (80%) */}
+                      <div className="flex-[0.8]">
+                        <Input
+                          placeholder="Add a comment with submission art image..."
+                          register={register("text", {
+                            required: "Comment is required",
+                          })}
+                          className="bg-zinc-800 text-sm w-full pr-10"
+                        />
+                      </div>
 
-  {/* hidden file input */}
-  <input
-    type="file"
-    accept="image/*,video/*"
-    ref={fileInputRef}
-    onChange={(e) => {
-      const f = e.target.files?.[0];
-      if (f) setFile(f);
-    }}
-    className="hidden"
-  />
+                      {/* hidden file input */}
+                      <input
+                        type="file"
+                        accept="image/*,video/*"
+                        ref={fileInputRef}
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) setFile(f);
+                        }}
+                        className="hidden"
+                      />
 
-  {/* Paperclip (5%) */}
-  <button
-    type="button"
-    onClick={() => fileInputRef.current?.click()}
-    className="flex-[0.05] flex items-center justify-center text-zinc-400 hover:text-white"
-    aria-label="Attach file"
-  >
-    <Paperclip size={18} />
-  </button>
+                      {/* Paperclip (5%) */}
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex-[0.05] flex items-center justify-center text-zinc-400 hover:text-white"
+                        aria-label="Attach file"
+                      >
+                        <Paperclip size={18} />
+                      </button>
 
-  {/* Post button (15%) */}
-  <div className="flex-[0.15]">
-    <Button
-      type="submit"
-      disabled={createCommentMutation.isLoading}
-      className="w-full h-full text-sm bg-blue-400"
-    >
-      {createCommentMutation.isLoading ? "Posting..." : "Post"}
-    </Button>
-  </div>
-</div>
+                      {/* Post button (15%) */}
+                      <div className="flex-[0.15]">
+                        <Button
+                          type="submit"
+                          disabled={createCommentMutation.isLoading}
+                          className="w-full h-full text-sm bg-blue-400"
+                        >
+                          {createCommentMutation.isLoading ? "Posting..." : "Post"}
+                        </Button>
+                      </div>
+                    </div>
 
 
                     {createCommentMutation.error && (
@@ -348,7 +348,7 @@ const ChallengeDetail = () => {
                 {comments.map((c: CommentType) => (
                   <div
                     key={(c as any).id}
-                    className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-3"
+                    className=" rounded-xl p-0"
                   >
                     <Comment comment={c as any} />
                   </div>

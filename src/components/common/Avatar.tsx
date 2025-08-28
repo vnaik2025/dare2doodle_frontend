@@ -17,6 +17,8 @@ const Avatar = ({ name = "Guest", size = 40, className = "" }: AvatarProps) => {
     }).toDataUri();
   }, [name]);
 
+  console.log("name is",name)
+
   return (
     <img
       src={avatarUri}

@@ -1,3 +1,4 @@
+// src/components/comments/Comment.tsx
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { deleteComment } from '../../apis/commentsApi';
 import LikeButton from './LikeButton';
@@ -16,6 +17,24 @@ interface CommentProps {
   depth?: number;
 }
 
+/**
+ * Helper: extract real media URL before '|' or '%' if present
+ */
+const extractRealMediaUrl = (mediaUrl?: string | null): string | null => {
+  if (!mediaUrl) return null;
+  const parts = mediaUrl.split(/[|%]/);
+  const first = parts[0]?.trim();
+  return first && first.length > 0 ? first : null;
+};
+
+/** Helper: basic image extension check */
+const isImageUrl = (url: string) =>
+  /\.(jpe?g|png|gif|webp|svg|bmp|tiff|heic)(\?.*)?$/i.test(url);
+
+/** Helper: basic video extension check */
+const isVideoUrl = (url: string) =>
+  /\.(mp4|webm|ogg|mov|m4v|mkv)(\?.*)?$/i.test(url);
+
 const Comment = ({ comment, depth = 0 }: CommentProps) => {
   const queryClient = useQueryClient();
   const [showReplyBox, setShowReplyBox] = useState(false);
@@ -32,7 +51,7 @@ const Comment = ({ comment, depth = 0 }: CommentProps) => {
     },
   });
 
-  // preview selected file
+  // preview selected file (for reply input)
   useEffect(() => {
     if (!file) {
       setFilePreview(null);
@@ -52,6 +71,9 @@ const Comment = ({ comment, depth = 0 }: CommentProps) => {
     if (f) setFile(f);
   };
 
+  // existing media url (extract the real url before | or %)
+  const existingMedia = extractRealMediaUrl((comment as any).mediaUrl ?? comment.mediaUrl);
+
   return (
     <div className="flex flex-col">
       {/* main comment row */}
@@ -69,7 +91,41 @@ const Comment = ({ comment, depth = 0 }: CommentProps) => {
         {/* content */}
         <div className="flex-1">
           {/* user name */}
-          <p className="text-xs font-semibold text-zinc-400">{comment.user?.name || 'Guest'}</p>
+          <p className="text-xs font-semibold text-zinc-400">
+            {comment.user?.name || 'Guest'}
+          </p>
+
+          {/* existing media preview (if comment has media) */}
+          {existingMedia && (
+            <div className="mt-1 mb-2 w-40 h-24 rounded-md overflow-hidden border border-zinc-700">
+              {isImageUrl(existingMedia) ? (
+                <img
+                  src={existingMedia}
+                  alt="comment media"
+                  className="w-full h-full object-cover"
+                />
+              ) : isVideoUrl(existingMedia) ? (
+                <video
+                  src={existingMedia}
+                  className="w-full h-full object-cover"
+                  controls
+                />
+              ) : (
+                // fallback to <img> — many CDNs serve images without extensions in the path
+                <img
+                  src={existingMedia}
+                  alt="comment media"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // if loading as image fails, hide element by removing src
+                    // (keeps UI clean instead of showing broken image)
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              )}
+            </div>
+          )}
+
           {/* comment text */}
           <p className="text-sm leading-snug text-zinc-200">{comment.text}</p>
 
@@ -106,7 +162,7 @@ const Comment = ({ comment, depth = 0 }: CommentProps) => {
           {/* reply input box */}
           {showReplyBox && (
             <div className="mt-2 space-y-2">
-              {/* file preview if exists */}
+              {/* file preview if selected (for reply attachment) */}
               {filePreview && (
                 <div className="w-40 h-24 rounded-md overflow-hidden border border-zinc-700">
                   {file && file.type.startsWith('image') ? (
