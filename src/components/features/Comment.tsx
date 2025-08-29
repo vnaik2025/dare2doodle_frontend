@@ -1,3 +1,4 @@
+// src/components/comments/Comment.tsx
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { deleteComment, createComment } from '../../apis/commentsApi';
 import LikeButton from './LikeButton';
@@ -16,6 +17,24 @@ interface CommentProps {
   comment: CommentType;
   depth?: number;
 }
+
+/**
+ * Helper: extract real media URL before '|' or '%' if present
+ */
+const extractRealMediaUrl = (mediaUrl?: string | null): string | null => {
+  if (!mediaUrl) return null;
+  const parts = mediaUrl.split(/[|%]/);
+  const first = parts[0]?.trim();
+  return first && first.length > 0 ? first : null;
+};
+
+/** Helper: basic image extension check */
+const isImageUrl = (url: string) =>
+  /\.(jpe?g|png|gif|webp|svg|bmp|tiff|heic)(\?.*)?$/i.test(url);
+
+/** Helper: basic video extension check */
+const isVideoUrl = (url: string) =>
+  /\.(mp4|webm|ogg|mov|m4v|mkv)(\?.*)?$/i.test(url);
 
 const Comment = ({ comment, depth = 0 }: CommentProps) => {
   const queryClient = useQueryClient();
@@ -174,7 +193,7 @@ const Comment = ({ comment, depth = 0 }: CommentProps) => {
           {/* reply input box */}
           {showReplyBox && (
             <div className="mt-2 space-y-2">
-              {/* file preview if exists */}
+              {/* file preview if selected (for reply attachment) */}
               {filePreview && (
                 <div className="w-40 h-24 rounded-md overflow-hidden border border-zinc-700">
                   {file && file.type.startsWith('image') ? (
