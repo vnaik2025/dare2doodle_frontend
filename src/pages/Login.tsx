@@ -92,8 +92,17 @@ const Login = () => {
   const mutation = useMutation({
     mutationFn: (data: FormData) => login(data),
     onSuccess: (res) => {
+      console.log("✅ Login API Success, response:", res);
       dispatch(authLogin({ token: res.token }));
+      console.log("✅ Token dispatched to Redux:", res.token);
+      console.log(
+        "✅ Decoded user from token:",
+        JSON.parse(atob(res.token.split(".")[1]))
+      );
       window.location.href = "/";
+    },
+    onError: (err) => {
+      console.error("❌ Login failed:", err);
     },
   });
 
@@ -125,7 +134,7 @@ const Login = () => {
               scale: 1.0,
               scaleMobile: 1.0,
               backgroundColor: 0x000000,
-              backgroundAlpha: 0.4,
+              backgroundAlpha: 10,
               color1: 0x00ff00,
               color2: 0x9900ff,
               colorMode: "varianceGradient",

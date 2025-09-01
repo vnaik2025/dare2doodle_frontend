@@ -1,14 +1,14 @@
-import { useEffect, useRef } from 'react';
-import { useForm } from 'react-hook-form';
-import { useMutation } from '@tanstack/react-query';
-import { useDispatch } from 'react-redux';
-import { login as authLogin } from '../store/slices/authSlice';
-import { register as registerApi } from '../apis/authApi';
-import Input from '../components/common/Input';
-import Button from '../components/common/Button';
-import ErrorMessage from '../components/common/ErrorMessage';
-import { Link } from 'react-router-dom';
-import d2dlog from '../assets/d2dlogo_1.png';
+import { useEffect, useRef } from "react";
+import { useForm } from "react-hook-form";
+import { useMutation } from "@tanstack/react-query";
+import { useDispatch } from "react-redux";
+import { login as authLogin } from "../store/slices/authSlice";
+import { register as registerApi } from "../apis/authApi";
+import Input from "../components/common/Input";
+import Button from "../components/common/Button";
+import ErrorMessage from "../components/common/ErrorMessage";
+import { Link } from "react-router-dom";
+import d2dlog from "../assets/d2dlogo_1.png";
 
 interface FormData {
   username: string;
@@ -17,7 +17,11 @@ interface FormData {
 }
 
 const Register = () => {
-  const { register: formRegister, handleSubmit, formState: { errors } } = useForm<FormData>();
+  const {
+    register: formRegister,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormData>();
   const dispatch = useDispatch();
   const vantaRef = useRef<HTMLDivElement>(null);
   const vantaEffectRef = useRef<any>(null);
@@ -26,19 +30,21 @@ const Register = () => {
     mutationFn: (data: FormData) => registerApi(data),
     onSuccess: (res) => {
       dispatch(authLogin({ token: res.token }));
-      window.location.href = '/';
+      window.location.href = "/";
     },
   });
 
   useEffect(() => {
     // Dynamically load Three.js and Vanta.js scripts
     const loadScripts = async () => {
-      const threeScript = document.createElement('script');
-      threeScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js';
+      const threeScript = document.createElement("script");
+      threeScript.src =
+        "https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js";
       threeScript.async = true;
 
-      const vantaScript = document.createElement('script');
-      vantaScript.src = 'https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.birds.min.js';
+      const vantaScript = document.createElement("script");
+      vantaScript.src =
+        "https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.birds.min.js";
       vantaScript.async = true;
 
       document.body.appendChild(threeScript);
@@ -56,10 +62,11 @@ const Register = () => {
               scale: 1.0,
               scaleMobile: 1.0,
               backgroundColor: 0x000000,
-              backgroundAlpha: 0.4,
+              backgroundAlpha: 10,
+
               color1: 0x00ff00,
               color2: 0x9900ff,
-              colorMode: 'varianceGradient',
+              colorMode: "varianceGradient",
               quantity: 5,
               birdSize: 1,
               wingSpan: 30,
@@ -115,21 +122,26 @@ const Register = () => {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <Input
             placeholder="Choose a username"
-            register={formRegister('username', { required: 'Username is required' })}
+            register={formRegister("username", {
+              required: "Username is required",
+            })}
             error={errors.username?.message}
           />
           <Input
             type="email"
             placeholder="Enter your email"
-            register={formRegister('email', { required: 'Email is required' })}
+            register={formRegister("email", { required: "Email is required" })}
             error={errors.email?.message}
           />
           <Input
             type="password"
             placeholder="Create a password"
-            register={formRegister('password', {
-              required: 'Password is required',
-              minLength: { value: 6, message: 'Password must be at least 6 characters' },
+            register={formRegister("password", {
+              required: "Password is required",
+              minLength: {
+                value: 6,
+                message: "Password must be at least 6 characters",
+              },
             })}
             error={errors.password?.message}
           />
@@ -140,7 +152,7 @@ const Register = () => {
             className="w-full py-2 bg-[#4ade80]/90 hover:bg-[#22c55e] focus:ring-[#4ade80] text-white font-medium rounded-lg shadow-md"
             disabled={mutation.isPending}
           >
-            {mutation.isPending ? 'Registering...' : 'Register'}
+            {mutation.isPending ? "Registering..." : "Register"}
           </Button>
 
           {mutation.isError && (
@@ -151,7 +163,7 @@ const Register = () => {
         {/* Already have account */}
         <div className="mt-6 text-sm text-gray-400">
           <p>
-            Already have an account?{' '}
+            Already have an account?{" "}
             <Link
               to="/login"
               className="text-[#4ade80]/90 hover:text-amber-300 font-medium transition-colors duration-200"

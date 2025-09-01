@@ -13,6 +13,8 @@ const Header = ({ showAuthLinks = true }: HeaderProps) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
+
+  console.log("user data is ",user)
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   return (
@@ -53,7 +55,7 @@ const Header = ({ showAuthLinks = true }: HeaderProps) => {
                 className="w-10 h-10 rounded-full border border-gray-700 overflow-hidden shadow-md hover:scale-105 transition"
               >
                 {/* ✅ Use reusable Avatar */}
-                <Avatar name={user?.name} size={40} />
+                <Avatar name={user?.id} size={40} />
               </button>
 
               {/* Dropdown */}

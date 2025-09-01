@@ -82,7 +82,7 @@ const Profile: React.FC = () => {
       {/* Header card */}
       <div className="bg-zinc-950/40 border border-zinc-800 rounded-xl p-4 mb-6">
         <div className="flex items-start gap-5">
-          <Avatar name={userData?.username ?? 'Guest'} size={96} className="border border-zinc-700 shadow-sm" />
+          <Avatar name={userData?.$id ?? 'Guest'} size={96} className="border border-zinc-700 shadow-sm" />
           <div className="flex-1">
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold leading-tight tracking-wide">{userData?.username ?? 'Guest'}</h1>
@@ -131,7 +131,7 @@ const Profile: React.FC = () => {
             submissions.map((s: any, idx: number) => (
               <article key={idx} className="bg-zinc-950/30 border border-zinc-800 rounded-lg p-4">
                 <div className="flex items-start gap-3">
-                  <Avatar name={userData?.username ?? 'Guest'} size={48} className="border" />
+                  <Avatar name={userData?.$id ?? 'Guest'} size={48} className="border" />
                   <div className="flex-1">
                     <div className="text-sm text-zinc-200">{s.text ?? s.content ?? '—'}</div>
                     {s.mediaUrl && <div className="mt-3"><MediaPreview url={s.mediaUrl} /></div>}

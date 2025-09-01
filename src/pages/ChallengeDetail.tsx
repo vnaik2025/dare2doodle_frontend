@@ -1,4 +1,3 @@
-// src/pages/ChallengeDetail.tsx
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -6,15 +5,26 @@ import { useForm } from "react-hook-form";
 import { useSelector } from "react-redux";
 import { getChallenge, deleteChallenge } from "../apis/challengesApi";
 import { getComments, createComment } from "../apis/commentsApi";
+import {
+  createBookmark,
+  deleteBookmark,
+  getBookmarks,
+} from "../apis/bookmarksApi";
 import type { RootState } from "../store";
 import type { Comment as CommentType } from "../apis/commentsApi";
+import type { Bookmark } from "../apis/bookmarksApi";
 import ChallengeCard from "../components/features/ChallengeCard";
 import Comment from "../components/features/Comment";
 import Input from "../components/common/Input";
 import Button from "../components/common/Button";
 import Loader from "../components/common/Loader";
 import ErrorMessage from "../components/common/ErrorMessage";
-import { Paperclip, ChevronLeft } from "lucide-react";
+import {
+  Paperclip,
+  ChevronLeft,
+  Bookmark as BookmarkIcon,
+  BookmarkCheck,
+} from "lucide-react";
 
 interface CommentForm {
   text: string;
@@ -65,8 +75,28 @@ const ChallengeDetail = () => {
     staleTime: 1000 * 30,
   });
 
+  // fetch bookmarks
+  const { data: bookmarks = [], isLoading: bookmarksLoading } = useQuery({
+    queryKey: ["bookmarks"],
+    queryFn: () => getBookmarks(),
+    enabled: !!user, // only fetch if logged in
+  });
+
+  const isBookmarked = bookmarks?.some((b: Bookmark) => b.challengeId === id);
+
+  // bookmark mutations
+  const addBookmarkMutation = useMutation({
+    mutationFn: () => createBookmark({ challengeId: id! }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["bookmarks"] }),
+  });
+
+  const removeBookmarkMutation = useMutation({
+    mutationFn: () => deleteBookmark(id!),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["bookmarks"] }),
+  });
+
   // form
-  const { register, handleSubmit, reset, formState } = useForm<CommentForm>();
+  const { register, handleSubmit, reset } = useForm<CommentForm>();
 
   const createCommentMutation = useMutation({
     mutationFn: (data: FormData) => createComment(data),
@@ -123,15 +153,32 @@ const ChallengeDetail = () => {
     deleteMutation.mutate();
   }, [deleteMutation]);
 
-  if (challengeLoading || commentsLoading) return <Loader />;
+
+  const extractImageUrl = (urlWithId?: string) => {
+  if (!urlWithId) return null;
+  return urlWithId.split("|")[0]; // only keep the actual URL
+};
+
+
+  const handleToggleBookmark = () => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    if (isBookmarked) {
+      removeBookmarkMutation.mutate();
+    } else {
+      addBookmarkMutation.mutate();
+    }
+  };
+
+  if (challengeLoading || commentsLoading || bookmarksLoading)
+    return <Loader />;
 
   if (challengeError || commentsError)
     return <ErrorMessage message="Failed to load challenge or comments" />;
 
   if (!challenge) return <ErrorMessage message="Challenge not found" />;
-
-  // small helper to trigger file picker
-  const openFilePicker = () => fileInputRef.current?.click();
 
   return (
     <div className="min-h-screen bg-black text-white pt-20 px-4 sm:px-6 lg:px-8">
@@ -202,6 +249,24 @@ const ChallengeDetail = () => {
                       {deleteMutation.isLoading ? "Deleting..." : "Delete"}
                     </Button>
                   )}
+
+                  {user && (
+                    <button
+                      onClick={handleToggleBookmark}
+                      className="ml-auto text-zinc-400 hover:text-white"
+                      aria-label="Toggle bookmark"
+                      disabled={
+                        addBookmarkMutation.isLoading ||
+                        removeBookmarkMutation.isLoading
+                      }
+                    >
+                      {isBookmarked ? (
+                        <BookmarkCheck size={20} className="text-blue-400" />
+                      ) : (
+                        <BookmarkIcon size={20} />
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -212,7 +277,10 @@ const ChallengeDetail = () => {
         <main className="lg:col-span-2 space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <Link to="/" className="text-sm flex flex-row justify-items-start items-center text-zinc-400 hover:text-white">
+              <Link
+                to="/"
+                className="text-sm flex flex-row justify-items-start items-center text-zinc-400 hover:text-white"
+              >
                 <ChevronLeft /> <p>Back to feed</p>
               </Link>
               <h1 className="text-xl md:text-2xl font-semibold mt-2">
@@ -308,11 +376,12 @@ const ChallengeDetail = () => {
                           disabled={createCommentMutation.isLoading}
                           className="w-full h-full text-sm bg-blue-400"
                         >
-                          {createCommentMutation.isLoading ? "Posting..." : "Post"}
+                          {createCommentMutation.isLoading
+                            ? "Posting..."
+                            : "Post"}
                         </Button>
                       </div>
                     </div>
-
 
                     {createCommentMutation.error && (
                       <ErrorMessage message="Failed to post comment" />
@@ -346,10 +415,7 @@ const ChallengeDetail = () => {
             ) : (
               <div className="space-y-3">
                 {comments.map((c: CommentType) => (
-                  <div
-                    key={(c as any).id}
-                    className=" rounded-xl p-0"
-                  >
+                  <div key={(c as any).id} className=" rounded-xl p-0">
                     <Comment comment={c as any} />
                   </div>
                 ))}
