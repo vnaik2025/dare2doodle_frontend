@@ -12,7 +12,11 @@ import {
 import { useState, useRef, useEffect, use } from 'react';
 import Avatar from '../common/Avatar';
 import Button from '../common/Button';
+
 import { useUser } from '../../hooks/useUser';
+
+import { useAuth } from '../../hooks/useAuth';
+
 
 interface CommentProps {
   comment: CommentType;
@@ -45,7 +49,7 @@ const Comment = ({ comment, depth = 0 }: CommentProps) => {
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [replyText, setReplyText] = useState('');
-
+  const { user } = useAuth();
   // delete comment mutation
   const deleteMutation = useMutation({
     mutationFn: () => deleteComment(comment.$id),
@@ -135,8 +139,12 @@ useEffect(()=>
         style={{ marginLeft: depth * 20 }}
       >
         {/* Avatar */}
-         <Avatar
-          name={user?.firstName || 'Guest'}
+
+      
+
+        <Avatar
+          name={comment?.userId}
+
           size={28}
           className="flex-shrink-0 "
         />

@@ -8,4 +8,6 @@ export const deleteLike = (targetType: 'challenge' | 'comment', targetId: string
   api.delete(`/likes?targetType=${targetType}&targetId=${targetId}`);
 
 export const getLikes = (targetType: 'challenge' | 'comment', targetId: string) =>
-  api.get(`/likes?targetType=${targetType}&targetId=${targetId}`);
+  api.get(`/likes?targetType=${targetType}&targetId=${targetId}`, {
+    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+  });
