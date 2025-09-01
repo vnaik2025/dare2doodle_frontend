@@ -25,3 +25,8 @@ export const getSubmissions = () => api.get<Comment[]>('/users/submissions').the
 export const getLikedPosts = () => api.get<Comment[]>('/users/liked-posts').then(res => res.data);
 
 export const getCommentedPosts = () => api.get<Comment[]>('/users/commented-posts').then(res => res.data);
+
+
+
+export const getUserById = (userId: string) =>
+  api.get<User>(`/users/${userId}`).then(res => res.data);
