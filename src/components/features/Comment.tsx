@@ -9,14 +9,16 @@ import {
   Share2,
   Paperclip,
 } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, use } from 'react';
 import Avatar from '../common/Avatar';
 import Button from '../common/Button';
+import { useUser } from '../../hooks/useUser';
 
 interface CommentProps {
   comment: CommentType;
   depth?: number;
 }
+
 
 /**
  * Helper: extract real media URL before '|' or '%' if present
@@ -53,6 +55,14 @@ const Comment = ({ comment, depth = 0 }: CommentProps) => {
       });
     },
   });
+
+const { data: user } = useUser(comment?.userId);
+
+useEffect(()=>
+{
+  console.log("user ",user)
+},[user])
+
 
   // create reply mutation
   const replyMutation = useMutation({
@@ -125,8 +135,8 @@ const Comment = ({ comment, depth = 0 }: CommentProps) => {
         style={{ marginLeft: depth * 20 }}
       >
         {/* Avatar */}
-        <Avatar
-          name={comment.user?.name || 'Guest'}
+         <Avatar
+          name={user?.firstName || 'Guest'}
           size={28}
           className="flex-shrink-0 "
         />
@@ -135,7 +145,7 @@ const Comment = ({ comment, depth = 0 }: CommentProps) => {
         <div className="flex-1">
           {/* user name */}
           <p className="text-xs font-semibold text-zinc-400">
-            {comment.user?.name || 'Guest'}
+            {user?.firstName || 'Guest'}
           </p>
 
           {/* comment text */}
