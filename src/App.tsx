@@ -25,7 +25,8 @@ function App() {
             <Route element={<MainLayout />}>
               <Route path="/" element={<ProtectedHome />} />
               <Route path="/challenge/:id" element={<ProtectedChallengeDetail />} />
-              <Route path="/profile" element={<ProtectedProfile />} />
+              <Route path="/profile/:userId" element={<ProtectedProfile />} />
+
               <Route path="/bookmarks" element={<ProtectedBookmarks />} />
               <Route path="/notifications" element={<ProtectedNotifications />} />
             </Route>
