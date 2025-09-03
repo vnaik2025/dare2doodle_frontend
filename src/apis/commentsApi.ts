@@ -20,3 +20,9 @@ export const getComments = async (challengeId: string): Promise<Comment[]> => {
   const res = await api.get<Comment[]>(`/comments/${challengeId}`);
   return res.data;
 };
+
+
+export const getCommentById = async (id: string): Promise<Comment> => {
+  const response = await api.get<Comment>(`/comments/comment/${id}`);
+  return response.data;
+};

@@ -3,6 +3,7 @@ import React from 'react';
 import Avatar from '../../components/common/Avatar';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../hooks/useAuth';
+import { Settings } from "lucide-react";
 import {
   followUserApi,
   unfollowUserApi,
@@ -71,7 +72,7 @@ const ProfileHeader: React.FC<Props> = ({ userData }) => {
     },
   });
 
-  console.log("user name is ",userData?.username)
+  console.log("user name is ",userData)
 
   return (
     <div className="bg-zinc-950/40 border border-zinc-800 rounded-xl p-4 mb-6">
@@ -146,6 +147,17 @@ const ProfileHeader: React.FC<Props> = ({ userData }) => {
             </div>
           </div>
         </div>
+
+
+        {isOwner && (
+  <button
+    onClick={() => window.location.href = `/settings/${userData?.$id}`}
+    className="ml-2 p-2 rounded-md border border-zinc-700 hover:bg-zinc-800"
+    title="Settings"
+  >
+    <Settings className="w-5 h-5 text-zinc-300" />
+  </button>
+)}
       </div>
     </div>
   );

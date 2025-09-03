@@ -11,6 +11,7 @@ import Profile from './pages/Profile';
 import Bookmarks from './pages/Bookmarks';
 import Notifications from './pages/Notifications';
 import useProtectedRoute from './hooks/useProtectedRoute';
+import SettingsPage from './components/features/SettingsPage';
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,8 @@ function App() {
 
               <Route path="/bookmarks" element={<ProtectedBookmarks />} />
               <Route path="/notifications" element={<ProtectedNotifications />} />
+              <Route path="/settings/:userId" element={<ProtectedSettingsPage />} />
+
             </Route>
           </Routes>
         </BrowserRouter>
@@ -60,6 +63,11 @@ const ProtectedBookmarks = () => {
 const ProtectedNotifications = () => {
   useProtectedRoute();
   return <Notifications />;
+};
+
+const ProtectedSettingsPage = () => {
+  useProtectedRoute();
+  return <SettingsPage />;
 };
 
 export default App;

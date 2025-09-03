@@ -46,5 +46,6 @@ export const getIncomingFollowRequestsApi = () => api.get('/users/follow-request
 export const handleFollowRequestApi = (requestId: string, action: 'accept'|'reject') =>
   api.post('/users/follow-request/handle', { requestId, action }).then(res => res.data);
 
-// utility: check if current viewer follows target (optional endpoint could be added server-side)
-// For now check profile data or query followers list and search.
+// Toggle privacy
+export const togglePrivacyApi = (makePrivate: boolean) =>
+  api.put<User>('/users/privacy', { private: makePrivate }).then(res => res.data);
