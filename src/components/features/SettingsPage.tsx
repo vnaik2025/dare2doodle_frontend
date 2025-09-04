@@ -17,7 +17,12 @@ const SettingsPage: React.FC = () => {
 
   const isOwner = user?.id === userId;
 
-  const { data: profile, isLoading, isError, error } = useQuery({
+  const {
+    data: profile,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ["settings", userId],
     queryFn: () => getUserById(userId!),
     enabled: !!userId,
@@ -61,9 +66,7 @@ const SettingsPage: React.FC = () => {
           <div className="mb-6">
             <h3 className="text-lg font-medium mb-2">Privacy</h3>
             <button
-              onClick={() =>
-                updatePrivacyMutation.mutate(!profile.private)
-              }
+              onClick={() => updatePrivacyMutation.mutate(!profile.private)}
               className="px-4 py-2 rounded-md border border-zinc-700 text-sm hover:bg-zinc-800"
               disabled={updatePrivacyMutation.isLoading}
             >

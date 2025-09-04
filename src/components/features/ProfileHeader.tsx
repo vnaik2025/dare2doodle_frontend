@@ -1,8 +1,7 @@
-// src/components/features/ProfileHeader.tsx
-import React from 'react';
-import Avatar from '../../components/common/Avatar';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '../../hooks/useAuth';
+import React, { useState } from "react";
+import Avatar from "../../components/common/Avatar";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "../../hooks/useAuth";
 import { Settings } from "lucide-react";
 import {
   followUserApi,
@@ -11,68 +10,103 @@ import {
   getFollowingApi,
   blockUserApi,
   unblockUserApi,
-} from '../../apis/usersApi';
+  getFollowStatusApi,
+} from "../../apis/usersApi";
+import FollowersList from "../features/FollowersList";
+import FollowingList from "../features/FollowingList";
+import FollowRequests from "../features/FollowRequests";
+import Toast from "../common/Toast";
 
 type Props = {
-  userData: any; // profile owner
+  userData: any;
 };
 
 const ProfileHeader: React.FC<Props> = ({ userData }) => {
   const queryClient = useQueryClient();
   const { user: currentUser } = useAuth();
-  const viewerId = currentUser?.id ?? currentUser?.id;
+  const viewerId = currentUser?.id;
+  const [showFollowers, setShowFollowers] = useState(false);
+  const [showFollowing, setShowFollowing] = useState(false);
+  const [showFollowRequests, setShowFollowRequests] = useState(false);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
 
-  // Queries
+  const isOwner = viewerId === (userData.id ?? userData.$id);
+
+  // Follow status query
+  const { data: followStatus } = useQuery({
+    queryKey: ["followStatus", userData.id ?? userData.$id],
+    queryFn: () => getFollowStatusApi(userData.id ?? userData.$id),
+    enabled: !isOwner && !!viewerId,
+  });
+
   const { data: followers } = useQuery({
-    queryKey: ['followers', userData.id ?? userData.$id],
+    queryKey: ["followers", userData.id ?? userData.$id],
     queryFn: () => getFollowersApi(userData.id ?? userData.$id),
     enabled: !!userData?.id || !!userData?.$id,
-    refetchIntervalInBackground:true
   });
 
   const { data: following } = useQuery({
-    queryKey: ['following', userData.id ?? userData.$id],
+    queryKey: ["following", userData.id ?? userData.$id],
     queryFn: () => getFollowingApi(userData.id ?? userData.$id),
     enabled: !!userData?.id || !!userData?.$id,
-    refetchIntervalInBackground:true
   });
-
-  // Relationship
-  const isOwner = viewerId === (userData.id ?? userData.$id);
-  const isFollowing = !!followers?.find(
-    (f: any) => (f.user?.id ?? f.user?.$id) === viewerId
-  );
 
   // Mutations
   const followMutation = useMutation({
     mutationFn: () => followUserApi(userData.id ?? userData.$id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['followers', userData.id ?? userData.$id] });
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: ["followStatus", userData.id ?? userData.$id],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["followers", userData.id ?? userData.$id],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["profile", userData.id ?? userData.$id],
+      }); // Invalidate profile to refresh submissions
+      setToast({
+        message: data.message.includes("request")
+          ? "Follow request sent"
+          : "Followed successfully",
+        type: "success",
+      });
     },
+    onError: () => setToast({ message: "Failed to follow", type: "error" }),
   });
 
   const unfollowMutation = useMutation({
     mutationFn: () => unfollowUserApi(userData.id ?? userData.$id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['followers', userData.id ?? userData.$id] });
+      queryClient.invalidateQueries({
+        queryKey: ["followStatus", userData.id ?? userData.$id],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["followers", userData.id ?? userData.$id],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["profile", userData.id ?? userData.$id],
+      }); // Invalidate profile to refresh submissions
+      setToast({ message: "Unfollowed successfully", type: "success" });
     },
+    onError: () => setToast({ message: "Failed to unfollow", type: "error" }),
   });
 
   const blockMutation = useMutation({
     mutationFn: () => blockUserApi(userData.id ?? userData.$id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['profile', userData.id ?? userData.$id] });
+      queryClient.invalidateQueries({
+        queryKey: ["profile", userData.id ?? userData.$id],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["followStatus", userData.id ?? userData.$id],
+      });
+      setToast({ message: "User blocked", type: "success" });
     },
+    onError: () => setToast({ message: "Failed to block", type: "error" }),
   });
-
-  const unblockMutation = useMutation({
-    mutationFn: () => unblockUserApi(userData.id ?? userData.$id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['profile', userData.id ?? userData.$id] });
-    },
-  });
-
-  console.log("user name is ",userData)
 
   return (
     <div className="bg-zinc-950/40 border border-zinc-800 rounded-xl p-4 mb-6">
@@ -87,34 +121,56 @@ const ProfileHeader: React.FC<Props> = ({ userData }) => {
             <h1 className="text-2xl font-bold leading-tight tracking-wide">
               {userData?.username}
             </h1>
-            {userData?.role && (
+            {userData?.private && (
               <span className="text-xs px-2 py-1 rounded-full bg-blue-600/80 text-white">
-                {userData.role}
+                Private
               </span>
             )}
           </div>
-          <p className="mt-1 text-sm text-zinc-400">{userData?.bio || '—'}</p>
+          <p className="mt-1 text-sm text-zinc-400">{userData?.bio || "—"}</p>
 
           <div className="mt-3 flex items-center gap-4 text-sm text-zinc-400">
-            <div>
+            <button
+              onClick={() => setShowFollowers(true)}
+              className="hover:text-white"
+              aria-label="View followers"
+            >
               <div className="text-xs text-zinc-500">Followers</div>
               <div className="text-sm text-white">{followers?.length ?? 0}</div>
-            </div>
-            <div>
+            </button>
+            <button
+              onClick={() => setShowFollowing(true)}
+              className="hover:text-white"
+              aria-label="View following"
+            >
               <div className="text-xs text-zinc-500">Following</div>
               <div className="text-sm text-white">{following?.length ?? 0}</div>
-            </div>
+            </button>
 
             {/* Actions */}
             <div className="ml-auto flex items-center gap-2">
               {!isOwner && viewerId && (
                 <>
-                  {isFollowing ? (
+                  {followStatus?.isBlocked ? (
+                    <button
+                      onClick={() => blockMutation.mutate()}
+                      className="px-3 py-1 rounded-md border border-red-700 text-red-400 text-sm"
+                    >
+                      Blocked
+                    </button>
+                  ) : followStatus?.isFollowing ? (
                     <button
                       onClick={() => unfollowMutation.mutate()}
-                      className="px-3 py-1 rounded-md border border-zinc-700 text-sm"
+                      className="px-3 py-1 rounded-md border border-zinc-700 text-sm hover:bg-zinc-800"
                     >
                       Following
+                    </button>
+                  ) : followStatus?.isRequested ? (
+                    <button
+                      onClick={() => unfollowMutation.mutate()}
+                      className="px-3 py-1 rounded-md border border-zinc-700 text-sm text-yellow-400"
+                    >
+                      Requested
                     </button>
                   ) : (
                     <button
@@ -124,41 +180,66 @@ const ProfileHeader: React.FC<Props> = ({ userData }) => {
                       Follow
                     </button>
                   )}
-
-                  <button
-                    onClick={() => blockMutation.mutate()}
-                    className="px-3 py-1 rounded-md border border-zinc-700 text-sm text-red-400"
-                  >
-                    Block
-                  </button>
+                  {!followStatus?.isBlocked && (
+                    <button
+                      onClick={() => blockMutation.mutate()}
+                      className="px-3 py-1 rounded-md border border-zinc-700 text-sm text-red-400"
+                    >
+                      Block
+                    </button>
+                  )}
                 </>
               )}
 
               {isOwner && (
                 <button
-                  onClick={() => {
-                    // toggle privacy API call
-                  }}
+                  onClick={() => setShowFollowRequests(true)}
                   className="px-3 py-1 rounded-md border border-zinc-700 text-sm"
                 >
-                  {userData?.private ? 'Private account' : 'Public account'}
+                  Follow Requests
                 </button>
               )}
             </div>
           </div>
         </div>
 
-
         {isOwner && (
-  <button
-    onClick={() => window.location.href = `/settings/${userData?.$id}`}
-    className="ml-2 p-2 rounded-md border border-zinc-700 hover:bg-zinc-800"
-    title="Settings"
-  >
-    <Settings className="w-5 h-5 text-zinc-300" />
-  </button>
-)}
+          <button
+            onClick={() =>
+              (window.location.href = `/settings/${userData?.$id}`)
+            }
+            className="ml-2 p-2 rounded-md border border-zinc-700 hover:bg-zinc-800"
+            title="Settings"
+            aria-label="Go to settings"
+          >
+            <Settings className="w-5 h-5 text-zinc-300" />
+          </button>
+        )}
       </div>
+
+      <FollowersList
+        userId={userData.id ?? userData.$id}
+        isOpen={showFollowers}
+        onClose={() => setShowFollowers(false)}
+      />
+      <FollowingList
+        userId={userData.id ?? userData.$id}
+        isOpen={showFollowing}
+        onClose={() => setShowFollowing(false)}
+      />
+      {isOwner && (
+        <FollowRequests
+          isOpen={showFollowRequests}
+          onClose={() => setShowFollowRequests(false)}
+        />
+      )}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 };
