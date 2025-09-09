@@ -274,24 +274,16 @@
 
 // export default Comment;
 
-
-
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { deleteComment, createComment } from '../../apis/commentsApi';
-import LikeButton from './LikeButton';
-import type { Comment as CommentType } from '../../apis/commentsApi';
-import {
-  Trash2,
-  Reply,
-  Share2,
-  Paperclip,
-} from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
-import Avatar from '../common/Avatar';
-import Button from '../common/Button';
-import { useUser } from '../../hooks/useUser';
-import { useAuth } from '../../hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { deleteComment, createComment } from "../../apis/commentsApi";
+import LikeButton from "./LikeButton";
+import type { Comment as CommentType } from "../../apis/commentsApi";
+import { Trash2, Reply, Share2, Paperclip, Send } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import Avatar from "../common/Avatar";
+import { useUser } from "../../hooks/useUser";
+import { useAuth } from "../../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 interface CommentProps {
   comment: CommentType;
@@ -304,25 +296,19 @@ const Comment = ({ comment, depth = 0 }: CommentProps) => {
   const [file, setFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [replyText, setReplyText] = useState('');
+  const [replyText, setReplyText] = useState("");
   const { user } = useAuth();
   const navigate = useNavigate();
 
   // fetch the actual user who wrote this comment
   const { data: commentUser } = useUser(comment.userId);
 
-  useEffect(() => {
-    if (commentUser) {
-      console.log("👤 Comment author:", commentUser);
-    }
-  }, [commentUser]);
-
   // delete comment mutation
   const deleteMutation = useMutation({
     mutationFn: () => deleteComment(comment.$id),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['comments', comment.challengeId],
+        queryKey: ["comments", comment.challengeId],
       });
     },
   });
@@ -332,9 +318,9 @@ const Comment = ({ comment, depth = 0 }: CommentProps) => {
     mutationFn: (formData: FormData) => createComment(formData),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['comments', comment.challengeId],
+        queryKey: ["comments", comment.challengeId],
       });
-      setReplyText('');
+      setReplyText("");
       setFile(null);
       setFilePreview(null);
       setShowReplyBox(false);
@@ -371,11 +357,11 @@ const Comment = ({ comment, depth = 0 }: CommentProps) => {
     if (!replyText.trim() && !file) return;
 
     const formData = new FormData();
-    formData.append('challengeId', comment.challengeId);
-    formData.append('text', replyText);
-    formData.append('parentCommentId', comment.$id);
+    formData.append("challengeId", comment.challengeId);
+    formData.append("text", replyText);
+    formData.append("parentCommentId", comment.$id);
 
-    if (file) formData.append('media', file);
+    if (file) formData.append("media", file);
 
     replyMutation.mutate(formData);
   };
@@ -402,7 +388,7 @@ const Comment = ({ comment, depth = 0 }: CommentProps) => {
             onClick={() => commentUser && navigate(`/profile/${commentUser.id}`)}
             className="text-xs font-semibold text-zinc-400 cursor-pointer hover:text-white"
           >
-            {commentUser?.username || 'Guest'}
+            {commentUser?.username || "Guest"}
           </p>
 
           {/* comment text */}
@@ -428,31 +414,35 @@ const Comment = ({ comment, depth = 0 }: CommentProps) => {
           )}
 
           {/* actions */}
-          <div className="mt-1 flex items-center gap-2 text-xs text-zinc-500">
+          <div className="mt-1 flex items-center gap-3 text-xs text-zinc-500">
             <button
               onClick={() => setShowReplyBox((s) => !s)}
-              className="flex items-center gap-1 hover:text-white transition-colors"
+              className="p-1 rounded hover:bg-zinc-800 transition-colors"
+              aria-label="Reply"
             >
-              <Reply size={12} />
-              Reply
+              <Reply size={14} className="text-zinc-400 hover:text-white" />
             </button>
 
             <LikeButton targetId={comment.$id} targetType="comment" />
 
             <button
               onClick={handleShare}
-              className="flex items-center gap-1 hover:text-white transition-colors"
+              className="p-1 rounded hover:bg-zinc-800 transition-colors"
+              aria-label="Share"
             >
-              <Share2 size={12} />
-              Share
+              <Share2 size={14} className="text-zinc-400 hover:text-white" />
             </button>
 
             <button
               onClick={() => deleteMutation.mutate()}
               disabled={deleteMutation.isPending}
               className="p-1 rounded hover:bg-zinc-800 transition-colors"
+              aria-label="Delete"
             >
-              <Trash2 size={14} className="text-zinc-400 hover:text-red-400" />
+              <Trash2
+                size={14}
+                className="text-zinc-400 hover:text-red-400"
+              />
             </button>
           </div>
 
@@ -461,7 +451,7 @@ const Comment = ({ comment, depth = 0 }: CommentProps) => {
             <div className="mt-2 space-y-2">
               {filePreview && (
                 <div className="w-40 h-24 rounded-md overflow-hidden border border-zinc-700">
-                  {file && file.type.startsWith('image') ? (
+                  {file && file.type.startsWith("image") ? (
                     <img
                       src={filePreview}
                       alt="preview"
@@ -496,17 +486,23 @@ const Comment = ({ comment, depth = 0 }: CommentProps) => {
                   type="button"
                   onClick={handleFileClick}
                   className="p-2 rounded hover:bg-zinc-800 transition-colors"
+                  aria-label="Attach file"
                 >
                   <Paperclip size={16} className="text-zinc-400" />
                 </button>
-                <Button
+                <button
                   type="button"
                   onClick={handleReplySubmit}
                   disabled={replyMutation.isPending}
-                  className="bg-blue-500 text-white px-3 py-1 rounded-md text-xs"
+                  className="p-2 rounded bg-blue-500 hover:bg-blue-600 text-white"
+                  aria-label="Send reply"
                 >
-                  {replyMutation.isPending ? 'Posting...' : 'Post'}
-                </Button>
+                  {replyMutation.isPending ? (
+                    <span className="text-xs">...</span>
+                  ) : (
+                    <Send size={16} />
+                  )}
+                </button>
               </div>
             </div>
           )}

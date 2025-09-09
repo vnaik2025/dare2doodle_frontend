@@ -1,11 +1,17 @@
 import React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getIncomingFollowRequestsApi, getOutgoingFollowRequestsApi, handleFollowRequestApi, retractFollowRequestApi } from "../../apis/usersApi";
+import {
+  getIncomingFollowRequestsApi,
+  getOutgoingFollowRequestsApi,
+  handleFollowRequestApi,
+  retractFollowRequestApi,
+} from "../../apis/usersApi";
 import Avatar from "../common/Avatar";
 import Loader from "../common/Loader";
 import ErrorMessage from "../common/ErrorMessage";
 import Toast from "../common/Toast";
 import Modal from "../common/Modal";
+import { Check, X, Undo2 } from "lucide-react";
 
 interface FollowRequestsProps {
   isOpen: boolean;
@@ -14,29 +20,48 @@ interface FollowRequestsProps {
 
 const FollowRequests: React.FC<FollowRequestsProps> = ({ isOpen, onClose }) => {
   const queryClient = useQueryClient();
-  const [toast, setToast] = React.useState<{ message: string; type: "success" | "error" } | null>(null);
+  const [toast, setToast] = React.useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
 
-  const { data: incomingRequests, isLoading: isLoadingIncoming, isError: isErrorIncoming, error: errorIncoming } = useQuery({
+  const {
+    data: incomingRequests,
+    isLoading: isLoadingIncoming,
+    isError: isErrorIncoming,
+    error: errorIncoming,
+  } = useQuery({
     queryKey: ["incomingFollowRequests"],
     queryFn: getIncomingFollowRequestsApi,
     enabled: isOpen,
   });
 
-  const { data: outgoingRequests, isLoading: isLoadingOutgoing, isError: isErrorOutgoing, error: errorOutgoing } = useQuery({
+  const {
+    data: outgoingRequests,
+    isLoading: isLoadingOutgoing,
+    isError: isErrorOutgoing,
+    error: errorOutgoing,
+  } = useQuery({
     queryKey: ["outgoingFollowRequests"],
     queryFn: getOutgoingFollowRequestsApi,
     enabled: isOpen,
   });
 
   const handleRequestMutation = useMutation({
-    mutationFn: ({ requestId, action }: { requestId: string; action: "accept" | "reject" }) =>
-      handleFollowRequestApi(requestId, action),
+    mutationFn: ({
+      requestId,
+      action,
+    }: {
+      requestId: string;
+      action: "accept" | "reject";
+    }) => handleFollowRequestApi(requestId, action),
     onSuccess: (_, { action }) => {
       queryClient.invalidateQueries({ queryKey: ["incomingFollowRequests"] });
       queryClient.invalidateQueries({ queryKey: ["followers"] });
       setToast({ message: `Request ${action}ed`, type: "success" });
     },
-    onError: () => setToast({ message: "Failed to process request", type: "error" }),
+    onError: () =>
+      setToast({ message: "Failed to process request", type: "error" }),
   });
 
   const retractRequestMutation = useMutation({
@@ -45,7 +70,8 @@ const FollowRequests: React.FC<FollowRequestsProps> = ({ isOpen, onClose }) => {
       queryClient.invalidateQueries({ queryKey: ["outgoingFollowRequests"] });
       setToast({ message: "Follow request retracted", type: "success" });
     },
-    onError: () => setToast({ message: "Failed to retract request", type: "error" }),
+    onError: () =>
+      setToast({ message: "Failed to retract request", type: "error" }),
   });
 
   return (
@@ -64,7 +90,7 @@ const FollowRequests: React.FC<FollowRequestsProps> = ({ isOpen, onClose }) => {
           {/* Incoming Requests */}
           {incomingRequests?.length ? (
             <>
-              <h3 className="text-lg font-medium text-white">Incoming Requests</h3>
+              <h3 className="text-lg font-medium text-white">Incoming</h3>
               <ul className="space-y-2">
                 {incomingRequests.map((req: any) => (
                   <li
@@ -72,35 +98,45 @@ const FollowRequests: React.FC<FollowRequestsProps> = ({ isOpen, onClose }) => {
                     className="flex items-center gap-3 p-2 hover:bg-zinc-800 rounded-md"
                   >
                     <Avatar name={req.requester?.username} size={40} />
-                    <span className="text-white flex-1">{req.requester?.username}</span>
+                    <span className="text-white flex-1">
+                      {req.requester?.username}
+                    </span>
                     <div className="flex gap-2">
                       <button
-                        onClick={() => handleRequestMutation.mutate({ requestId: req.$id, action: "accept" })}
-                        className="px-3 py-1 rounded-md bg-blue-600 text-white text-sm"
+                        onClick={() =>
+                          handleRequestMutation.mutate({
+                            requestId: req.$id,
+                            action: "accept",
+                          })
+                        }
+                        className="p-2 rounded-full bg-green-600 text-white hover:bg-green-700"
                         disabled={handleRequestMutation.isLoading}
                       >
-                        Accept
+                        <Check size={16} />
                       </button>
                       <button
-                        onClick={() => handleRequestMutation.mutate({ requestId: req.$id, action: "reject" })}
-                        className="px-3 py-1 rounded-md border border-zinc-700 text-sm"
+                        onClick={() =>
+                          handleRequestMutation.mutate({
+                            requestId: req.$id,
+                            action: "reject",
+                          })
+                        }
+                        className="p-2 rounded-full bg-red-600 text-white hover:bg-red-700"
                         disabled={handleRequestMutation.isLoading}
                       >
-                        Reject
+                        <X size={16} />
                       </button>
                     </div>
                   </li>
                 ))}
               </ul>
             </>
-          ) : (
-            <p className="text-zinc-400 text-sm">No pending incoming follow requests.</p>
-          )}
+          ) : null}
 
           {/* Outgoing Requests */}
           {outgoingRequests?.length ? (
             <>
-              <h3 className="text-lg font-medium text-white">Outgoing Requests</h3>
+              <h3 className="text-lg font-medium text-white">Outgoing</h3>
               <ul className="space-y-2">
                 {outgoingRequests.map((req: any) => (
                   <li
@@ -108,20 +144,26 @@ const FollowRequests: React.FC<FollowRequestsProps> = ({ isOpen, onClose }) => {
                     className="flex items-center gap-3 p-2 hover:bg-zinc-800 rounded-md"
                   >
                     <Avatar name={req.target?.username} size={40} />
-                    <span className="text-white flex-1">{req.target?.username}</span>
+                    <span className="text-white flex-1">
+                      {req.target?.username}
+                    </span>
                     <button
                       onClick={() => retractRequestMutation.mutate(req.$id)}
-                      className="px-3 py-1 rounded-md border border-yellow-700 text-yellow-400 text-sm hover:bg-yellow-800/30"
+                      className="p-2 rounded-full bg-yellow-600 text-white hover:bg-yellow-700"
                       disabled={retractRequestMutation.isLoading}
                     >
-                      Retract
+                      <Undo2 size={16} />
                     </button>
                   </li>
                 ))}
               </ul>
             </>
-          ) : (
-            <p className="text-zinc-400 text-sm">No pending outgoing follow requests.</p>
+          ) : null}
+
+          {!incomingRequests?.length && !outgoingRequests?.length && (
+            <p className="text-zinc-400 text-sm">
+              No pending follow requests.
+            </p>
           )}
         </div>
       </Modal>

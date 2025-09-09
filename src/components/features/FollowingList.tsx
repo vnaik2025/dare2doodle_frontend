@@ -6,14 +6,16 @@ import Loader from "../common/Loader";
 import ErrorMessage from "../common/ErrorMessage";
 import Modal from "../common/Modal";
 import Toast from "../common/Toast";
+import { UserMinus, Ban } from "lucide-react";
 
 interface FollowingListProps {
   userId: string;
   isOpen: boolean;
+  isOwner: boolean;
   onClose: () => void;
 }
 
-const FollowingList: React.FC<FollowingListProps> = ({ userId, isOpen, onClose }) => {
+const FollowingList: React.FC<FollowingListProps> = ({ userId, isOpen, isOwner, onClose }) => {
   const queryClient = useQueryClient();
   const [toast, setToast] = React.useState<{ message: string; type: "success" | "error" } | null>(null);
 
@@ -56,23 +58,25 @@ const FollowingList: React.FC<FollowingListProps> = ({ userId, isOpen, onClose }
                 className="flex items-center gap-3 p-2 hover:bg-zinc-800 rounded-md"
               >
                 <Avatar name={f.user.username} size={40} />
-                <span className="text-white flex-1">{f.user.username}</span>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => unfollowMutation.mutate(f.user.id)}
-                    className="px-3 py-1 rounded-md border border-zinc-700 text-sm hover:bg-zinc-800"
-                    disabled={unfollowMutation.isLoading}
-                  >
-                    Unfollow
-                  </button>
-                  <button
-                    onClick={() => blockUserMutation.mutate(f.user.id)}
-                    className="px-3 py-1 rounded-md border border-red-700 text-red-400 text-sm hover:bg-red-800/30"
-                    disabled={blockUserMutation.isLoading}
-                  >
-                    Block
-                  </button>
-                </div>
+                <span className="text-white flex-1 truncate">{f.user.username}</span>
+                {isOwner && (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => unfollowMutation.mutate(f.user.$id)}
+                      className="p-2 rounded-full hover:bg-zinc-700"
+                      aria-label="Unfollow"
+                    >
+                      <UserMinus size={18} className="text-zinc-300" />
+                    </button>
+                    <button
+                      onClick={() => blockUserMutation.mutate(f.user.$id)}
+                      className="p-2 rounded-full hover:bg-red-900"
+                      aria-label="Block user"
+                    >
+                      <Ban size={18} className="text-red-400" />
+                    </button>
+                  </div>
+                )}
               </li>
             ))}
           </ul>
@@ -81,11 +85,7 @@ const FollowingList: React.FC<FollowingListProps> = ({ userId, isOpen, onClose }
         )}
       </Modal>
       {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
+        <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
       )}
     </>
   );

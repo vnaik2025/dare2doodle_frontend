@@ -6,6 +6,13 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getProfile } from "../../apis/usersApi";
 import Avatar from "../common/Avatar";
+import {
+  Home,
+  Bookmark,
+  Bell,
+  LogOut,
+  User,
+} from "lucide-react";
 
 interface HeaderProps {
   showAuthLinks?: boolean;
@@ -23,14 +30,13 @@ const Header = ({ showAuthLinks = true }: HeaderProps) => {
     data: profile,
     isLoading,
     isError,
-    error,
   } = useQuery({
     queryKey: ["profile"],
     queryFn: getProfile,
     enabled: isAuthenticated,
-    staleTime: 1000 * 60 * 5, // 5 minutes - data considered fresh
-    cacheTime: 1000 * 60 * 30, // 30 minutes - keep in cache
-    retry: false, // don’t retry on error like 401
+    staleTime: 1000 * 60 * 5,
+    cacheTime: 1000 * 60 * 30,
+    retry: false,
   });
 
   return (
@@ -39,39 +45,53 @@ const Header = ({ showAuthLinks = true }: HeaderProps) => {
         {/* Logo */}
         <h1
           onClick={() => navigate("/")}
-          className="text-xl md:text-2xl font-bold cursor-pointer tracking-wide hover:text-primary transition"
+          className="text-xl md:text-2xl font-bold cursor-pointer tracking-wide hover:text-amber-400 transition"
         >
-          D2D
+          Dare2Doodle
         </h1>
 
         {/* Navigation */}
-        <nav className="hidden md:flex space-x-6 text-sm font-medium">
-          <NavLink to="/" className="hover:text-primary transition">
-            Home
-          </NavLink>
-          {isAuthenticated && (
-            <>
-              <NavLink to="/bookmarks" className="hover:text-primary transition">
-                Bookmarks
-              </NavLink>
+        {isAuthenticated && (
+          <nav className="hidden md:flex items-center gap-8 text-sm font-medium relative">
+            {[
+              { to: "/", label: "Home", icon: <Home size={18} /> },
+              { to: "/bookmarks", label: "Bookmarks", icon: <Bookmark size={18} /> },
+              { to: "/notifications", label: "Notifications", icon: <Bell size={18} /> },
+            ].map((link) => (
               <NavLink
-                to="/notifications"
-                className="hover:text-primary transition"
+                key={link.to}
+                to={link.to}
+                className={({ isActive }) =>
+                  `flex flex-col items-center gap-1 px-1 transition relative group`
+                }
               >
-                Notifications
+                {({ isActive }) => (
+                  <>
+                    <div className="flex items-center gap-1 text-gray-400 group-hover:text-white transition">
+                      {link.icon}
+                      <span className="hidden md:inline">{link.label}</span>
+                    </div>
+                    {/* Animated underline */}
+                    <span
+                      className={`absolute bottom-[-6px] h-[2px] rounded-full bg-amber-400 transition-all duration-300 ${
+                        isActive ? "w-full" : "w-0 group-hover:w-full"
+                      }`}
+                    ></span>
+                  </>
+                )}
               </NavLink>
-            </>
-          )}
-        </nav>
+            ))}
+          </nav>
+        )}
 
         {/* Right side */}
-        <div className="relative">
+        <div className="relative flex items-center gap-3">
           {!isAuthenticated && showAuthLinks && (
             <div className="space-x-4 text-sm font-medium">
-              <NavLink to="/login" className="hover:text-primary transition">
+              <NavLink to="/login" className="hover:text-amber-400 transition">
                 Login
               </NavLink>
-              <NavLink to="/register" className="hover:text-primary transition">
+              <NavLink to="/register" className="hover:text-amber-400 transition">
                 Register
               </NavLink>
             </div>
@@ -88,14 +108,13 @@ const Header = ({ showAuthLinks = true }: HeaderProps) => {
 
               {/* Show error state */}
               {isError && (
-                <div className="text-xs text-red-400">
-                  Failed to load profile
-                </div>
+                <div className="text-xs text-red-400">Failed to load profile</div>
               )}
 
               {/* Once profile is loaded */}
               {profile && (
                 <>
+                
                   <button
                     onClick={() => setDropdownOpen(!dropdownOpen)}
                     className="w-10 h-10 rounded-full border border-gray-700 overflow-hidden shadow-md hover:scale-105 transition"
@@ -104,24 +123,24 @@ const Header = ({ showAuthLinks = true }: HeaderProps) => {
                   </button>
 
                   {dropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-44 bg-gray-900 border border-gray-800 rounded-xl shadow-lg py-2 text-sm z-50 animate-fadeIn">
+                    <div className="absolute right-0 top-12 w-44 bg-gray-900 border border-gray-800 rounded-xl shadow-lg py-2 text-sm z-50 animate-fadeIn">
                       <button
                         onClick={() => {
                           navigate(`/profile/${profile?.user?.$id}`);
                           setDropdownOpen(false);
                         }}
-                        className="block w-full text-left px-4 py-2 hover:bg-gray-800 rounded-md transition"
+                        className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-gray-800 rounded-md transition"
                       >
-                        Profile
+                        <User size={16} /> Profile
                       </button>
                       <button
                         onClick={() => {
                           dispatch(logout());
                           setDropdownOpen(false);
                         }}
-                        className="block w-full text-left px-4 py-2 hover:bg-gray-800 rounded-md text-red-400 transition"
+                        className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-gray-800 rounded-md text-red-400 transition"
                       >
-                        Logout
+                        <LogOut size={16} /> Logout
                       </button>
                     </div>
                   )}

@@ -1,4 +1,3 @@
-// src/components/Notifications.tsx
 import React, { useEffect, useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -21,9 +20,7 @@ import {
 import clsx from 'clsx';
 
 // --- Helpers ---
-const getCreatedAt = (n: any): string | null => {
-  return n.createdAt || n.$createdAt || null;
-};
+const getCreatedAt = (n: any): string | null => n.createdAt || n.$createdAt || null;
 
 const formatGroupKey = (iso: string) => {
   const d = new Date(iso);
@@ -171,70 +168,64 @@ const NotificationItem: React.FC<{
     return () => { mounted = false; };
   }, [notification]);
 
- const renderMessage = () => {
-  const actorName = actor?.username || 'Someone';
-  const icon = getIconForType(notification.type);
+  const renderMessage = () => {
+    const actorName = actor?.username || 'Someone';
+    const icon = getIconForType(notification.type);
 
-  switch (notification.type) {
-    case 'like':
-      return (
-        <>
+    switch (notification.type) {
+      case 'like':
+        return (
           <span className="inline-flex items-center gap-1">
-            {icon}
             <span>
               {actorName} liked your comment
               {commentPreview ? ` “${commentPreview}”` : ''}
               {challengeTitle ? ` on "${challengeTitle}"` : ''}
             </span>
           </span>
-        </>
-      );
-    case 'reply':
-      return (
-        <span className="inline-flex items-center gap-1">
-          {icon}
-          <span>
-            {actorName} replied
-            {commentPreview ? `: “${commentPreview}”` : ''}
-            {challengeTitle ? ` on "${challengeTitle}"` : ''}
+        );
+      case 'reply':
+        return (
+          <span className="inline-flex items-center gap-1">
+            <span>
+              {actorName} replied
+              {commentPreview ? `: “${commentPreview}”` : ''}
+              {challengeTitle ? ` on "${challengeTitle}"` : ''}
+            </span>
           </span>
-        </span>
-      );
-    case 'new_submission':
-      return (
-        <span className="inline-flex items-center gap-1">
-          {icon}
-          <span>
-            {actorName} submitted a new artwork
-            {challengeTitle ? ` to "${challengeTitle}"` : ''}
+        );
+      case 'new_submission':
+        return (
+          <span className="inline-flex items-center gap-1">
+            <span>
+              {actorName} submitted a new artwork
+              {challengeTitle ? ` to "${challengeTitle}"` : ''}
+            </span>
           </span>
-        </span>
-      );
-    case 'follow':
-      return (
-        <span className="inline-flex items-center gap-1">
-          {icon}
-          <span>{actorName} started following you</span>
-        </span>
-      );
-    default:
-      return (
-        <span className="inline-flex items-center gap-1">
-          {icon}
-          <span>{actorName} did something</span>
-        </span>
-      );
-  }
-};
-
+        );
+      case 'follow':
+        return (
+          <span className="inline-flex items-center gap-1">
+            <span>{actorName} started following you</span>
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center gap-1">
+            <span>{actorName} did something</span>
+          </span>
+        );
+    }
+  };
 
   const createdIso = getCreatedAt(notification) || new Date().toISOString();
 
   return (
     <div
       className={clsx(
-        'flex items-center justify-between gap-4 rounded-xl border border-zinc-800 p-3 transition-colors',
-        (notification as any).read ? 'bg-zinc-900/40 opacity-70' : 'bg-zinc-900/80 hover:bg-zinc-800/80'
+        'flex items-center justify-between gap-3 rounded-xl border border-zinc-800 p-3 transition-colors text-sm',
+        (notification as any).read
+          ? 'bg-zinc-900/40 opacity-70'
+          : 'bg-zinc-900/80 hover:bg-zinc-800/80'
       )}
     >
       <div className="flex items-center gap-3 min-w-0">
@@ -246,12 +237,12 @@ const NotificationItem: React.FC<{
           )}
         </div>
 
-        <div className="min-w-0">
-          <p className="text-sm text-zinc-200 truncate">{renderMessage()}</p>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-zinc-500">{timeAgo(createdIso)}</span>
-            {challengeTitle ? <span className="text-xs text-zinc-500">• {challengeTitle}</span> : null}
-            {!((notification as any).read) && <span className="inline-block h-2 w-2 rounded-full bg-blue-500 mt-0.5" />}
+        <div className="min-w-0 flex-1">
+          <p className="text-zinc-200 truncate leading-tight">{renderMessage()}</p>
+          <div className="flex items-center gap-2 text-xs text-zinc-500">
+            <span>{timeAgo(createdIso)}</span>
+            {challengeTitle ? <span>• {challengeTitle}</span> : null}
+            {!((notification as any).read) && <span className="inline-block h-2 w-2 rounded-full bg-blue-500" />}
           </div>
         </div>
       </div>
@@ -260,10 +251,9 @@ const NotificationItem: React.FC<{
         <button
           onClick={() => mutation.mutate()}
           disabled={mutation.isLoading}
-          className="rounded-full p-1 hover:bg-zinc-800 transition-colors"
+          className="rounded-full p-1 hover:bg-zinc-800"
           aria-label="Mark as read"
         >
-          <CheckCircle2 size={18} className="text-green-400" />
         </button>
       )}
     </div>
@@ -276,13 +266,9 @@ const NotificationsList: React.FC = () => {
   const [challengeCache] = useState(() => new Map<string, any>());
   const [commentCache] = useState(() => new Map<string, any>());
 
-  // ✅ FIXED for React Query v5
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: ['notifications'],
-    queryFn: async () => {
-      const list = await fetchNotifications();
-      return list;
-    },
+    queryFn: async () => fetchNotifications(),
   });
 
   const grouped = useMemo(() => {
@@ -303,8 +289,8 @@ const NotificationsList: React.FC = () => {
     });
   }, [notifications]);
 
-  if (isLoading) return <div className="p-4 text-zinc-400">Loading notifications…</div>;
-  if (!notifications.length) return <div className="p-4 text-zinc-400">No notifications yet</div>;
+  if (isLoading) return <div className="p-4 text-zinc-400 text-sm">Loading notifications…</div>;
+  if (!notifications.length) return <div className="p-4 text-zinc-400 text-sm">No notifications yet</div>;
 
   return (
     <div className="space-y-6">

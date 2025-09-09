@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Tag, Image as ImageIcon } from "lucide-react";
 import type { Challenge } from "../../apis/challengesApi";
 import { extractImageUrl } from "../../utils/url";
 
@@ -15,15 +16,17 @@ const ChallengeCard = ({ challenge }: ChallengeCardProps) => {
       className="group relative flex flex-col bg-gray-900/70 rounded-2xl border border-gray-800 backdrop-blur-md p-4 transition-transform hover:scale-[1.02] hover:border-gray-700 shadow-lg"
     >
       {/* Thumbnail */}
-      {imgSrc && (
-        <div className="w-full h-44 overflow-hidden rounded-xl mb-3">
+      <div className="w-full h-44 overflow-hidden rounded-xl mb-3 flex items-center justify-center bg-gray-800">
+        {imgSrc ? (
           <img
             src={imgSrc}
             alt={challenge.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
-        </div>
-      )}
+        ) : (
+          <ImageIcon className="w-10 h-10 text-gray-500" />
+        )}
+      </div>
 
       {/* Title + Description */}
       <h3 className="text-lg font-semibold text-white truncate group-hover:text-amber-400 transition-colors">
@@ -34,16 +37,19 @@ const ChallengeCard = ({ challenge }: ChallengeCardProps) => {
       </p>
 
       {/* Tags */}
-      <div className="mt-3 flex flex-wrap gap-1">
-        {challenge.tags?.map((tag) => (
-          <span
-            key={tag}
-            className="bg-gray-800/70 border border-gray-700 text-gray-300 text-xs px-2 py-0.5 rounded-full group-hover:bg-gray-700 transition-colors"
-          >
-            {tag}
-          </span>
-        ))}
-      </div>
+      {challenge.tags?.length ? (
+        <div className="mt-3 flex flex-wrap gap-1 items-center">
+          <Tag className="w-4 h-4 text-gray-500" />
+          {challenge.tags.map((tag) => (
+            <span
+              key={tag}
+              className="bg-gray-800/70 border border-gray-700 text-gray-300 text-xs px-2 py-0.5 rounded-full group-hover:bg-gray-700 transition-colors"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      ) : null}
     </Link>
   );
 };

@@ -344,3 +344,8 @@ export const togglePrivacyApi = (makePrivate: boolean) =>
 
 export const getFollowStatusApi = (targetId: string) =>
   api.get(`/users/follow-status/${targetId}`).then((res) => res.data);
+
+
+
+export const getBlockedUsersApi = () =>
+  api.get(`/users/blocked`).then((res) => res.data);
