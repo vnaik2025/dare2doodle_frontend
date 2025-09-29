@@ -272,8 +272,8 @@
 //   );
 // };
 
-// export default Comment;
 
+// src/components/features/Comment.tsx
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteComment, createComment } from "../../apis/commentsApi";
 import LikeButton from "./LikeButton";
@@ -281,6 +281,7 @@ import type { Comment as CommentType } from "../../apis/commentsApi";
 import { Trash2, Reply, Share2, Paperclip, Send } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import Avatar from "../common/Avatar";
+import Input from "../common/Input";
 import { useUser } from "../../hooks/useUser";
 import { useAuth } from "../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -300,10 +301,8 @@ const Comment = ({ comment, depth = 0 }: CommentProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // fetch the actual user who wrote this comment
-  const { data: commentUser } = useUser(comment.userId);
+  const { data: commentUser, isLoading: userLoading } = useUser(comment.userId);
 
-  // delete comment mutation
   const deleteMutation = useMutation({
     mutationFn: () => deleteComment(comment.$id),
     onSuccess: () => {
@@ -313,7 +312,6 @@ const Comment = ({ comment, depth = 0 }: CommentProps) => {
     },
   });
 
-  // create reply mutation
   const replyMutation = useMutation({
     mutationFn: (formData: FormData) => createComment(formData),
     onSuccess: () => {
@@ -327,7 +325,6 @@ const Comment = ({ comment, depth = 0 }: CommentProps) => {
     },
   });
 
-  // preview selected file
   useEffect(() => {
     if (!file) {
       setFilePreview(null);
@@ -360,7 +357,6 @@ const Comment = ({ comment, depth = 0 }: CommentProps) => {
     formData.append("challengeId", comment.challengeId);
     formData.append("text", replyText);
     formData.append("parentCommentId", comment.$id);
-
     if (file) formData.append("media", file);
 
     replyMutation.mutate(formData);
@@ -368,86 +364,106 @@ const Comment = ({ comment, depth = 0 }: CommentProps) => {
 
   return (
     <div className="flex flex-col">
-      {/* main comment row */}
       <div
         className="flex items-start gap-2 p-2 rounded-lg bg-zinc-900/40 border border-zinc-800"
         style={{ marginLeft: depth * 20 }}
       >
-        {/* Avatar */}
-        <Avatar
-          name={commentUser?.username || "Guest"}
-          size={28}
-          className="flex-shrink-0 cursor-pointer"
-          onClick={() => commentUser && navigate(`/profile/${commentUser.id}`)}
+        {userLoading ? (
+          // Avatar skeleton
+          <div className="w-7 h-7 rounded-full bg-zinc-800 animate-pulse" />
+        ) : (
+          <Avatar
+            name={commentUser?.username || "Guest"}
+            size={28}
+            className="flex-shrink-0 cursor-pointer"
+            onClick={() =>
+              commentUser && navigate(`/profile/${commentUser.id}`)
+            }
+          />
+        )}
+
+        <div className="flex-1 min-w-0">
+          {userLoading ? (
+            // Username + text skeleton
+            <div className="space-y-2">
+              <div className="h-3 w-24 bg-zinc-800 rounded animate-pulse" />
+              <div className="h-3 w-full max-w-sm bg-zinc-800 rounded animate-pulse" />
+            </div>
+          ) : (
+            <>
+              <p
+                onClick={() =>
+                  commentUser && navigate(`/profile/${commentUser.id}`)
+                }
+                className="text-xs font-semibold text-zinc-400 cursor-pointer hover:text-white"
+              >
+                {commentUser?.username || "Guest"}
+              </p>
+
+              <p className="text-sm leading-snug text-zinc-200">
+                {comment.text}
+              </p>
+            </>
+          )}
+
+         {comment.mediaUrl && (
+  <div className="mt-2 max-w-xs rounded-md overflow-hidden border border-zinc-700">
+    {(() => {
+      // Extract URL before the '|' if exists
+      const mediaUrl = comment.mediaUrl.split("|")[0];
+      const isImage = mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+      return isImage ? (
+        <img
+          src={mediaUrl}
+          alt="comment media"
+          className="w-full h-auto object-cover"
         />
+      ) : (
+        <video
+          src={mediaUrl}
+          className="w-full h-auto object-cover"
+          controls
+        />
+      );
+    })()}
+  </div>
+)}
 
-        {/* content */}
-        <div className="flex-1">
-          {/* user name */}
-          <p
-            onClick={() => commentUser && navigate(`/profile/${commentUser.id}`)}
-            className="text-xs font-semibold text-zinc-400 cursor-pointer hover:text-white"
-          >
-            {commentUser?.username || "Guest"}
-          </p>
+          {!userLoading && (
+            <div className="mt-1 flex items-center gap-3 text-xs text-zinc-500">
+              <button
+                onClick={() => setShowReplyBox((s) => !s)}
+                className="p-1 rounded hover:bg-zinc-800 transition-colors"
+                aria-label="Reply"
+              >
+                <Reply size={14} className="text-zinc-400 hover:text-white" />
+              </button>
 
-          {/* comment text */}
-          <p className="text-sm leading-snug text-zinc-200">{comment.text}</p>
+              <LikeButton targetId={comment.$id} targetType="comment" />
 
-          {/* comment media */}
-          {comment.mediaUrl && (
-            <div className="mt-2 max-w-xs rounded-md overflow-hidden border border-zinc-700">
-              {comment.mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-                <img
-                  src={comment.mediaUrl}
-                  alt="comment media"
-                  className="w-full h-auto object-cover"
+              <button
+                onClick={handleShare}
+                className="p-1 rounded hover:bg-zinc-800 transition-colors"
+                aria-label="Share"
+              >
+                <Share2 size={14} className="text-zinc-400 hover:text-white" />
+              </button>
+
+              <button
+                onClick={() => deleteMutation.mutate()}
+                disabled={deleteMutation.isPending}
+                className="p-1 rounded hover:bg-zinc-800 transition-colors"
+                aria-label="Delete"
+              >
+                <Trash2
+                  size={14}
+                  className="text-zinc-400 hover:text-red-400"
                 />
-              ) : (
-                <video
-                  src={comment.mediaUrl}
-                  className="w-full h-auto object-cover"
-                  controls
-                />
-              )}
+              </button>
             </div>
           )}
 
-          {/* actions */}
-          <div className="mt-1 flex items-center gap-3 text-xs text-zinc-500">
-            <button
-              onClick={() => setShowReplyBox((s) => !s)}
-              className="p-1 rounded hover:bg-zinc-800 transition-colors"
-              aria-label="Reply"
-            >
-              <Reply size={14} className="text-zinc-400 hover:text-white" />
-            </button>
-
-            <LikeButton targetId={comment.$id} targetType="comment" />
-
-            <button
-              onClick={handleShare}
-              className="p-1 rounded hover:bg-zinc-800 transition-colors"
-              aria-label="Share"
-            >
-              <Share2 size={14} className="text-zinc-400 hover:text-white" />
-            </button>
-
-            <button
-              onClick={() => deleteMutation.mutate()}
-              disabled={deleteMutation.isPending}
-              className="p-1 rounded hover:bg-zinc-800 transition-colors"
-              aria-label="Delete"
-            >
-              <Trash2
-                size={14}
-                className="text-zinc-400 hover:text-red-400"
-              />
-            </button>
-          </div>
-
-          {/* reply input box */}
-          {showReplyBox && (
+          {showReplyBox && !userLoading && (
             <div className="mt-2 space-y-2">
               {filePreview && (
                 <div className="w-40 h-24 rounded-md overflow-hidden border border-zinc-700">
@@ -467,14 +483,15 @@ const Comment = ({ comment, depth = 0 }: CommentProps) => {
                 </div>
               )}
 
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
+              <div className="flex items-center gap-2 flex-nowrap">
+                <Input
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
                   placeholder="Write a reply..."
-                  className="flex-1 rounded-md bg-zinc-800 text-sm p-1.5 text-zinc-200"
+                  isComment={true}
+                  className="flex-1 min-w-0"
                 />
+
                 <input
                   type="file"
                   accept="image/*,video/*"
@@ -482,19 +499,21 @@ const Comment = ({ comment, depth = 0 }: CommentProps) => {
                   onChange={handleFileChange}
                   className="hidden"
                 />
+
                 <button
                   type="button"
                   onClick={handleFileClick}
-                  className="p-2 rounded hover:bg-zinc-800 transition-colors"
+                  className="p-2 rounded hover:bg-zinc-800 transition-colors flex-shrink-0"
                   aria-label="Attach file"
                 >
                   <Paperclip size={16} className="text-zinc-400" />
                 </button>
+
                 <button
                   type="button"
                   onClick={handleReplySubmit}
                   disabled={replyMutation.isPending}
-                  className="p-2 rounded bg-blue-500 hover:bg-blue-600 text-white"
+                  className="p-2 rounded bg-blue-500 hover:bg-blue-600 text-white flex-shrink-0"
                   aria-label="Send reply"
                 >
                   {replyMutation.isPending ? (
@@ -507,7 +526,6 @@ const Comment = ({ comment, depth = 0 }: CommentProps) => {
             </div>
           )}
 
-          {/* nested replies */}
           {comment.replies && comment.replies.length > 0 && (
             <div className="mt-2 space-y-2 border-l border-zinc-800 pl-4 ml-2">
               {comment.replies.map((reply) => (

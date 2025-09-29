@@ -1,3 +1,4 @@
+// src/components/common/Header.tsx
 import { NavLink, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { logout } from "../../store/slices/authSlice";
@@ -6,83 +7,63 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getProfile } from "../../apis/usersApi";
 import Avatar from "../common/Avatar";
-import {
-  Home,
-  Bookmark,
-  Bell,
-  LogOut,
-  User,
-} from "lucide-react";
+import { User, LogOut, Home, Bookmark, Bell, Palette } from "lucide-react";
+import logo from '../../../public/logo2.png'
 
 interface HeaderProps {
   showAuthLinks?: boolean;
 }
 
+const navItems = [
+  { to: "/", icon: <Home size={18} />, label: "Home" },
+  { to: "/challenges", icon: <Palette size={18} />, label: "Challenges" },
+  { to: "/bookmarks", icon: <Bookmark size={18} />, label: "Bookmarks" },
+  { to: "/notifications", icon: <Bell size={18} />, label: "Notifications" },
+];
+
 const Header = ({ showAuthLinks = true }: HeaderProps) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
-
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  // ✅ Profile query with caching
-  const {
-    data: profile,
-    isLoading,
-    isError,
-  } = useQuery({
+  const { data: profile, isLoading, isError } = useQuery({
     queryKey: ["profile"],
     queryFn: getProfile,
     enabled: isAuthenticated,
     staleTime: 1000 * 60 * 5,
-    cacheTime: 1000 * 60 * 30,
     retry: false,
   });
 
   return (
-    <header className="fixed top-0 left-0 w-full bg-black backdrop-blur-md border-b border-gray-800 text-white shadow-md z-50">
-      <div className="container mx-auto flex justify-between items-center py-3 px-4">
-        {/* Logo */}
-        <h1
-          onClick={() => navigate("/")}
-          className="text-xl md:text-2xl font-bold cursor-pointer tracking-wide hover:text-amber-400 transition"
-        >
-          Dare2Doodle
-        </h1>
+   <header className="w-full h-full bg-black border-b border-gray-800 text-white shadow-md">
 
-        {/* Navigation */}
-        {isAuthenticated && (
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium relative">
-            {[
-              { to: "/", label: "Home", icon: <Home size={18} /> },
-              { to: "/bookmarks", label: "Bookmarks", icon: <Bookmark size={18} /> },
-              { to: "/notifications", label: "Notifications", icon: <Bell size={18} /> },
-            ].map((link) => (
-              <NavLink
-                key={link.to}
-                to={link.to}
-                className={({ isActive }) =>
-                  `flex flex-col items-center gap-1 px-1 transition relative group`
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    <div className="flex items-center gap-1 text-gray-400 group-hover:text-white transition">
-                      {link.icon}
-                      <span className="hidden md:inline">{link.label}</span>
-                    </div>
-                    {/* Animated underline */}
-                    <span
-                      className={`absolute bottom-[-6px] h-[2px] rounded-full bg-amber-400 transition-all duration-300 ${
-                        isActive ? "w-full" : "w-0 group-hover:w-full"
-                      }`}
-                    ></span>
-                  </>
-                )}
-              </NavLink>
-            ))}
-          </nav>
-        )}
+      <div className="container mx-auto flex justify-between items-center py-3 px-2">
+        {/* Logo */}
+        <img src={logo} alt="logo"
+          onClick={() => navigate("/")}
+          className=" w-50 h-6 text-xl md:text-2xl font-bold cursor-pointer tracking-wide hover:text-amber-400 transition"
+        />
+         
+       
+
+        {/* Desktop Nav Links */}
+        <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) =>
+                `flex items-center gap-1 transition ${
+                  isActive ? "text-amber-400" : "text-gray-400 hover:text-white"
+                }`
+              }
+            >
+              {item.icon}
+              <span>{item.label}</span>
+            </NavLink>
+          ))}
+        </nav>
 
         {/* Right side */}
         <div className="relative flex items-center gap-3">
@@ -91,7 +72,10 @@ const Header = ({ showAuthLinks = true }: HeaderProps) => {
               <NavLink to="/login" className="hover:text-amber-400 transition">
                 Login
               </NavLink>
-              <NavLink to="/register" className="hover:text-amber-400 transition">
+              <NavLink
+                to="/register"
+                className="hover:text-amber-400 transition"
+              >
                 Register
               </NavLink>
             </div>
@@ -99,22 +83,18 @@ const Header = ({ showAuthLinks = true }: HeaderProps) => {
 
           {isAuthenticated && (
             <>
-              {/* Show loader while fetching */}
               {isLoading && (
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-xs border border-gray-700 text-gray-400">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center border border-gray-700 text-gray-400">
                   ...
                 </div>
               )}
 
-              {/* Show error state */}
               {isError && (
-                <div className="text-xs text-red-400">Failed to load profile</div>
+                <div className="text-xs text-red-400">Failed to load</div>
               )}
 
-              {/* Once profile is loaded */}
               {profile && (
                 <>
-                
                   <button
                     onClick={() => setDropdownOpen(!dropdownOpen)}
                     className="w-10 h-10 rounded-full border border-gray-700 overflow-hidden shadow-md hover:scale-105 transition"

@@ -24,7 +24,12 @@ export const updateNotification = async (id: string, data: { read: boolean }) =>
   return response.data; // ✅ Return only updated notification
 };
 
-export const getNotifications = async () => {
+export const getNotifications = async (): Promise<Notification[]> => {
   const response = await api.get<Notification[]>('/notifications');
+  
+  // Log the full response for debugging
+  console.log('Notifications API response:', response);
+  console.log('Notifications data array:', response.data);
+
   return response.data; // ✅ Return only array of notifications
 };

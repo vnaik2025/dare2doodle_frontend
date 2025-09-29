@@ -153,12 +153,10 @@
 //     deleteMutation.mutate();
 //   }, [deleteMutation]);
 
-
 //   const extractImageUrl = (urlWithId?: string) => {
 //   if (!urlWithId) return null;
 //   return urlWithId.split("|")[0]; // only keep the actual URL
 // };
-
 
 //   const handleToggleBookmark = () => {
 //     if (!user) {
@@ -430,6 +428,440 @@
 
 // export default ChallengeDetail;
 
+// // src/pages/ChallengeDetail.tsx
+// import { useCallback, useEffect, useRef, useState } from "react";
+// import { useParams, Link, useNavigate } from "react-router-dom";
+// import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+// import { useForm } from "react-hook-form";
+// import { useSelector } from "react-redux";
+// import { getChallenge, deleteChallenge } from "../apis/challengesApi";
+// import { getComments, createComment } from "../apis/commentsApi";
+// import {
+//   createBookmark,
+//   deleteBookmark,
+//   getBookmarks,
+// } from "../apis/bookmarksApi";
+// import type { RootState } from "../store";
+// import type { Comment as CommentType } from "../apis/commentsApi";
+// import type { Bookmark } from "../apis/bookmarksApi";
+// import ChallengeCard from "../components/features/ChallengeCard";
+// import Comment from "../components/features/Comment";
+// import Input from "../components/common/Input";
+// import Button from "../components/common/Button";
+// import ErrorMessage from "../components/common/ErrorMessage";
+// import {
+//   Paperclip,
+//   ChevronLeft,
+//   Bookmark as BookmarkIcon,
+//   BookmarkCheck,
+// } from "lucide-react";
+// import { Pencil } from "lucide-react";
+// import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
+// import "react-loading-skeleton/dist/skeleton.css";
+
+// interface CommentForm {
+//   text: string;
+// }
+
+// const formatDate = (iso?: string) => {
+//   if (!iso) return "-";
+//   try {
+//     return new Date(iso).toLocaleString();
+//   } catch {
+//     return iso;
+//   }
+// };
+
+// const ChallengeDetail = () => {
+//   const { id } = useParams<{ id: string }>();
+//   const navigate = useNavigate();
+//   const { user } = useSelector((s: RootState) => s.auth);
+//   const queryClient = useQueryClient();
+
+//   const [file, setFile] = useState<File | null>(null);
+//   const [filePreview, setFilePreview] = useState<string | null>(null);
+//   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+//   // fetch challenge
+//   const {
+//     data: challenge,
+//     isLoading: challengeLoading,
+//     error: challengeError,
+//   } = useQuery({
+//     queryKey: ["challenge", id],
+//     queryFn: () => getChallenge(id!),
+//     enabled: !!id,
+//     staleTime: 1000 * 60 * 2,
+//   });
+
+//   // fetch comments
+//   const {
+//     data: comments = [],
+//     isLoading: commentsLoading,
+//     error: commentsError,
+//   } = useQuery({
+//     queryKey: ["comments", id],
+//     queryFn: () => getComments(id!),
+//     enabled: !!id,
+//     staleTime: 1000 * 30,
+//   });
+
+//   // fetch bookmarks
+//   const { data: bookmarks = [], isLoading: bookmarksLoading } = useQuery({
+//     queryKey: ["bookmarks"],
+//     queryFn: () => getBookmarks(),
+//     enabled: !!user,
+//   });
+
+//   const isBookmarked = bookmarks?.some((b: Bookmark) => b.challengeId === id);
+
+//   const addBookmarkMutation = useMutation({
+//     mutationFn: () => createBookmark({ challengeId: id! }),
+//     onSuccess: () =>
+//       queryClient.invalidateQueries({ queryKey: ["bookmarks"] }),
+//   });
+
+//   const removeBookmarkMutation = useMutation({
+//     mutationFn: () => deleteBookmark(id!),
+//     onSuccess: () =>
+//       queryClient.invalidateQueries({ queryKey: ["bookmarks"] }),
+//   });
+
+//   const { register, handleSubmit, reset } = useForm<CommentForm>();
+//   const createCommentMutation = useMutation({
+//     mutationFn: (data: FormData) => createComment(data),
+//     onSuccess: () => {
+//       queryClient.invalidateQueries({ queryKey: ["comments", id] });
+//       reset();
+//       setFile(null);
+//       setFilePreview(null);
+//     },
+//   });
+
+//   const deleteMutation = useMutation({
+//     mutationFn: () => deleteChallenge(id!),
+//     onSuccess: () => {
+//       queryClient.invalidateQueries({ queryKey: ["challenges"] });
+//       navigate("/");
+//     },
+//   });
+
+//   useEffect(() => {
+//     if (!file) {
+//       setFilePreview(null);
+//       return;
+//     }
+//     const url = URL.createObjectURL(file);
+//     setFilePreview(url);
+//     return () => URL.revokeObjectURL(url);
+//   }, [file]);
+
+//   const challengeId =
+//     (challenge && ((challenge as any).id || (challenge as any).$id)) || id;
+
+//   const onSubmit = useCallback(
+//     (data: CommentForm) => {
+//       const formData = new FormData();
+//       formData.append("challengeId", challengeId!);
+//       formData.append("text", data.text);
+//       if (file) formData.append("media", file);
+//       if (user) formData.append("userId", user.id);
+//       createCommentMutation.mutate(formData);
+//     },
+//     [file, user, createCommentMutation, challengeId]
+//   );
+
+//   const handleDelete = useCallback(() => {
+//     if (!window.confirm("Delete this challenge? This cannot be undone.")) return;
+//     deleteMutation.mutate();
+//   }, [deleteMutation]);
+
+//   const handleToggleBookmark = () => {
+//     if (!user) {
+//       navigate("/login");
+//       return;
+//     }
+//     isBookmarked
+//       ? removeBookmarkMutation.mutate()
+//       : addBookmarkMutation.mutate();
+//   };
+
+//   if (challengeLoading || commentsLoading || bookmarksLoading) {
+//     return (
+//       <SkeletonTheme baseColor="#202020" highlightColor="#444">
+//         <div className="min-h-screen bg-black text-white">
+//           <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 p-4">
+//             {/* Left skeleton panel */}
+//             <aside className="lg:col-span-1 space-y-4">
+//               <Skeleton height={220} className="rounded-xl" />
+//               <Skeleton count={3} height={16} />
+//               <div className="flex gap-2 mt-3">
+//                 <Skeleton width={80} height={32} />
+//                 <Skeleton width={80} height={32} />
+//                 <Skeleton circle width={32} height={32} />
+//               </div>
+//             </aside>
+
+//             {/* Right skeleton panel */}
+//             <main className="lg:col-span-2 space-y-6">
+//               <Skeleton width="60%" height={24} />
+//               <Skeleton count={2} height={16} />
+//               <Skeleton height={100} className="rounded-xl" />
+//               <div className="space-y-3 mt-4">
+//                 {Array.from({ length: 3 }).map((_, idx) => (
+//                   <div
+//                     key={idx}
+//                     className="bg-zinc-900 border border-zinc-800 rounded-lg p-4"
+//                   >
+//                     <Skeleton width="40%" height={16} className="mb-2" />
+//                     <Skeleton count={2} height={14} />
+//                   </div>
+//                 ))}
+//               </div>
+//             </main>
+//           </div>
+//         </div>
+//       </SkeletonTheme>
+//     );
+//   }
+
+//   if (challengeError || commentsError)
+//     return <ErrorMessage message="Failed to load challenge or comments" />;
+//   if (!challenge) return <ErrorMessage message="Challenge not found" />;
+
+//   return (
+//     <div className="min-h-screen bg-black text-white ">
+//       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+//         {/* Left panel */}
+//         <aside className="lg:col-span-1">
+//           <div className="sticky top-20">
+//             <div className="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-4 shadow-sm space-y-4">
+//               <ChallengeCard challenge={challenge as any} />
+
+//               <div className="text-sm text-zinc-300 space-y-2">
+//                 <div className="flex justify-between items-center">
+//                   <span className="text-xs text-zinc-400">Creator</span>
+//                   <span className="font-medium truncate">
+//                     {(challenge as any).creatorName ||
+//                       (challenge as any).creator ||
+//                       "Unknown"}
+//                   </span>
+//                 </div>
+
+//                 <div className="flex justify-between items-center">
+//                   <span className="text-xs text-zinc-400">Created</span>
+//                   <span className="text-xs text-zinc-300">
+//                     {formatDate((challenge as any).createdAt)}
+//                   </span>
+//                 </div>
+
+//                 <div>
+//                   <span className="text-xs text-zinc-400">Tags</span>
+//                   <div className="mt-2 flex flex-wrap gap-2">
+//                     {((challenge as any).tags || []).length ? (
+//                       (challenge as any).tags.map((t: string) => (
+//                         <span
+//                           key={t}
+//                           className="text-xs bg-zinc-800 px-2 py-1 rounded-full"
+//                         >
+//                           {t}
+//                         </span>
+//                       ))
+//                     ) : (
+//                       <span className="text-xs text-zinc-500">No tags</span>
+//                     )}
+//                   </div>
+//                 </div>
+
+//                 <div className="mt-3 flex items-center gap-3">
+//                   {user && (
+//                     <Button
+//                       variant="ghost"
+//                       onClick={() =>
+//                         navigate(`/challenge/${challengeId}/participate`)
+//                       }
+//                       className="text-sm px-3 py-1 hidden md:inline-flex"
+//                     >
+//                       Participate
+//                     </Button>
+//                   )}
+
+//                   {user && user.id === (challenge as any).creatorId && (
+//                     <>
+//                       <Button
+//                         variant="outline"
+//                         className="text-sm px-3 py-1 hidden md:inline-flex"
+//                         onClick={() =>
+//                           navigate(`/challenge/edit/${challengeId}`)
+//                         }
+//                       >
+//                         <Pencil size={16} className="mr-1" /> Edit
+//                       </Button>
+//                       <Button
+//                         variant="outline"
+//                         className="text-sm px-3 py-1 hidden md:inline-flex"
+//                         onClick={handleDelete}
+//                         disabled={deleteMutation.isLoading}
+//                       >
+//                         {deleteMutation.isLoading ? "Deleting..." : "Delete"}
+//                       </Button>
+//                     </>
+//                   )}
+
+//                   {user && (
+//                     <button
+//                       onClick={handleToggleBookmark}
+//                       className="ml-auto text-zinc-400 hover:text-white"
+//                       aria-label="Toggle bookmark"
+//                       disabled={
+//                         addBookmarkMutation.isLoading ||
+//                         removeBookmarkMutation.isLoading
+//                       }
+//                     >
+//                       {isBookmarked ? (
+//                         <BookmarkCheck size={20} className="text-blue-400" />
+//                       ) : (
+//                         <BookmarkIcon size={20} />
+//                       )}
+//                     </button>
+//                   )}
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         </aside>
+
+//         {/* Right panel */}
+//         <main className="lg:col-span-2 space-y-6">
+//           <div className="flex items-start justify-between">
+//             <div>
+//               <Link
+//                 to="/"
+//                 className="text-sm flex items-center text-zinc-400 hover:text-white gap-1"
+//               >
+//                 <ChevronLeft size={16} /> Back to feed
+//               </Link>
+//               <h1 className="text-xl md:text-2xl font-semibold mt-2">
+//                 {(challenge as any).title || "Untitled"}
+//               </h1>
+//               <p className="text-sm text-zinc-300 mt-1 line-clamp-4">
+//                 {(challenge as any).description || ""}
+//               </p>
+//             </div>
+//             <div className="text-sm text-zinc-400 hidden sm:inline">
+//               <span className="font-mono text-xs">{challengeId}</span>
+//             </div>
+//           </div>
+
+//           {/* Comment form */}
+//           <section className="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-4">
+//             {user ? (
+//               <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+//                 {filePreview && (
+//                   <div className="mt-1">
+//                     <div className="flex justify-between text-xs text-zinc-400">
+//                       <span>Preview</span>
+//                       <button
+//                         type="button"
+//                         className="hover:text-white"
+//                         onClick={() => setFile(null)}
+//                       >
+//                         Remove
+//                       </button>
+//                     </div>
+//                     <div className="mt-2 w-full sm:w-48 h-28 rounded-md overflow-hidden border border-zinc-800">
+//                       {file?.type.startsWith("image") ? (
+//                         <img
+//                           src={filePreview}
+//                           alt="preview"
+//                           className="w-full h-full object-cover"
+//                         />
+//                       ) : (
+//                         <video
+//                           src={filePreview}
+//                           className="w-full h-full object-cover"
+//                           controls
+//                         />
+//                       )}
+//                     </div>
+//                   </div>
+//                 )}
+//                 <div className="flex items-center w-full gap-2">
+//                   <div className="flex-1">
+//                     <Input
+//                       placeholder="Add a comment..."
+//                       isComment={true}
+//                       register={register("text", { required: true })}
+//                       className="bg-zinc-800 text-sm w-full pr-10"
+//                     />
+//                   </div>
+//                   <input
+//                     type="file"
+//                     accept="image/*,video/*"
+//                     ref={fileInputRef}
+//                     onChange={(e) => {
+//                       const f = e.target.files?.[0];
+//                       if (f) setFile(f);
+//                     }}
+//                     className="hidden"
+//                   />
+//                   <button
+//                     type="button"
+//                     onClick={() => fileInputRef.current?.click()}
+//                     className="text-zinc-400 hover:text-white flex items-center justify-center p-2"
+//                     aria-label="Attach file"
+//                   >
+//                     <Paperclip size={18} />
+//                   </button>
+//                   <Button
+//                     type="submit"
+//                     disabled={createCommentMutation.isLoading}
+//                     className="w-20 h-full text-sm bg-blue-400"
+//                   >
+//                     {createCommentMutation.isLoading ? "Posting..." : "Post"}
+//                   </Button>
+//                 </div>
+//                 {createCommentMutation.error && (
+//                   <ErrorMessage message="Failed to post comment" />
+//                 )}
+//               </form>
+//             ) : (
+//               <div className="text-sm text-zinc-400">
+//                 <Link to="/login" className="underline">
+//                   Login
+//                 </Link>{" "}
+//                 to post a comment.
+//               </div>
+//             )}
+//           </section>
+
+//           {/* Comments list */}
+//           <section className="space-y-3">
+//             <h2 className="text-lg font-semibold">
+//               Comments{" "}
+//               <span className="text-sm text-zinc-400">
+//                 ({comments?.length || 0})
+//               </span>
+//             </h2>
+//             {comments.length === 0 ? (
+//               <div className="bg-zinc-900/50 border border-dashed border-zinc-800 rounded-lg p-6 text-center text-zinc-400">
+//                 No comments yet — be the first to share a thought.
+//               </div>
+//             ) : (
+//               <div className="space-y-3">
+//                 {comments.map((c: CommentType) => (
+//                   <Comment key={(c as any).id} comment={c as any} />
+//                 ))}
+//               </div>
+//             )}
+//           </section>
+//         </main>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default ChallengeDetail;
 
 // src/pages/ChallengeDetail.tsx
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -439,7 +871,11 @@ import { useForm } from "react-hook-form";
 import { useSelector } from "react-redux";
 import { getChallenge, deleteChallenge } from "../apis/challengesApi";
 import { getComments, createComment } from "../apis/commentsApi";
-import { createBookmark, deleteBookmark, getBookmarks } from "../apis/bookmarksApi";
+import {
+  createBookmark,
+  deleteBookmark,
+  getBookmarks,
+} from "../apis/bookmarksApi";
 import type { RootState } from "../store";
 import type { Comment as CommentType } from "../apis/commentsApi";
 import type { Bookmark } from "../apis/bookmarksApi";
@@ -447,16 +883,29 @@ import ChallengeCard from "../components/features/ChallengeCard";
 import Comment from "../components/features/Comment";
 import Input from "../components/common/Input";
 import Button from "../components/common/Button";
-import Loader from "../components/common/Loader";
 import ErrorMessage from "../components/common/ErrorMessage";
-import { Paperclip, ChevronLeft, Bookmark as BookmarkIcon, BookmarkCheck } from "lucide-react";
+import {
+  Paperclip,
+  ChevronLeft,
+  Bookmark as BookmarkIcon,
+  BookmarkCheck,
+  Pencil,
+  Trash2,
+} from "lucide-react";
+import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 
-interface CommentForm { text: string; }
+interface CommentForm {
+  text: string;
+}
 
 const formatDate = (iso?: string) => {
   if (!iso) return "-";
-  try { return new Date(iso).toLocaleString(); } 
-  catch { return iso; }
+  try {
+    return new Date(iso).toLocaleString();
+  } catch {
+    return iso;
+  }
 };
 
 const ChallengeDetail = () => {
@@ -470,7 +919,11 @@ const ChallengeDetail = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // fetch challenge
-  const { data: challenge, isLoading: challengeLoading, error: challengeError } = useQuery({
+  const {
+    data: challenge,
+    isLoading: challengeLoading,
+    error: challengeError,
+  } = useQuery({
     queryKey: ["challenge", id],
     queryFn: () => getChallenge(id!),
     enabled: !!id,
@@ -478,7 +931,11 @@ const ChallengeDetail = () => {
   });
 
   // fetch comments
-  const { data: comments = [], isLoading: commentsLoading, error: commentsError } = useQuery({
+  const {
+    data: comments = [],
+    isLoading: commentsLoading,
+    error: commentsError,
+  } = useQuery({
     queryKey: ["comments", id],
     queryFn: () => getComments(id!),
     enabled: !!id,
@@ -507,22 +964,34 @@ const ChallengeDetail = () => {
   const { register, handleSubmit, reset } = useForm<CommentForm>();
   const createCommentMutation = useMutation({
     mutationFn: (data: FormData) => createComment(data),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["comments", id] }); reset(); setFile(null); setFilePreview(null); },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["comments", id] });
+      reset();
+      setFile(null);
+      setFilePreview(null);
+    },
   });
 
   const deleteMutation = useMutation({
     mutationFn: () => deleteChallenge(id!),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["challenges"] }); navigate("/"); },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["challenges"] });
+      navigate("/");
+    },
   });
 
   useEffect(() => {
-    if (!file) { setFilePreview(null); return; }
+    if (!file) {
+      setFilePreview(null);
+      return;
+    }
     const url = URL.createObjectURL(file);
     setFilePreview(url);
     return () => URL.revokeObjectURL(url);
   }, [file]);
 
-  const challengeId = (challenge && ((challenge as any).id || (challenge as any).$id)) || id;
+  const challengeId =
+    (challenge && ((challenge as any).id || (challenge as any).$id)) || id;
 
   const onSubmit = useCallback(
     (data: CommentForm) => {
@@ -537,21 +1006,66 @@ const ChallengeDetail = () => {
   );
 
   const handleDelete = useCallback(() => {
-    if (!window.confirm("Delete this challenge? This cannot be undone.")) return;
+    if (!window.confirm("Delete this challenge? This cannot be undone."))
+      return;
     deleteMutation.mutate();
   }, [deleteMutation]);
 
   const handleToggleBookmark = () => {
-    if (!user) { navigate("/login"); return; }
-    isBookmarked ? removeBookmarkMutation.mutate() : addBookmarkMutation.mutate();
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    isBookmarked
+      ? removeBookmarkMutation.mutate()
+      : addBookmarkMutation.mutate();
   };
 
-  if (challengeLoading || commentsLoading || bookmarksLoading) return <Loader />;
-  if (challengeError || commentsError) return <ErrorMessage message="Failed to load challenge or comments" />;
+  if (challengeLoading || commentsLoading || bookmarksLoading) {
+    return (
+      <SkeletonTheme baseColor="#202020" highlightColor="#444">
+        <div className="min-h-screen bg-black text-white">
+          <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 p-4">
+            {/* Left skeleton panel */}
+            <aside className="lg:col-span-1 space-y-4">
+              <Skeleton height={220} className="rounded-xl" />
+              <Skeleton count={3} height={16} />
+              <div className="flex gap-2 mt-3">
+                <Skeleton width={80} height={32} />
+                <Skeleton width={80} height={32} />
+                <Skeleton circle width={32} height={32} />
+              </div>
+            </aside>
+
+            {/* Right skeleton panel */}
+            <main className="lg:col-span-2 space-y-6">
+              <Skeleton width="60%" height={24} />
+              <Skeleton count={2} height={16} />
+              <Skeleton height={100} className="rounded-xl" />
+              <div className="space-y-3 mt-4">
+                {Array.from({ length: 3 }).map((_, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-zinc-900 border border-zinc-800 rounded-lg p-4"
+                  >
+                    <Skeleton width="40%" height={16} className="mb-2" />
+                    <Skeleton count={2} height={14} />
+                  </div>
+                ))}
+              </div>
+            </main>
+          </div>
+        </div>
+      </SkeletonTheme>
+    );
+  }
+
+  if (challengeError || commentsError)
+    return <ErrorMessage message="Failed to load challenge or comments" />;
   if (!challenge) return <ErrorMessage message="Challenge not found" />;
 
   return (
-    <div className="min-h-screen bg-black text-white pt-16 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-black text-white py-8">
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left panel */}
         <aside className="lg:col-span-1">
@@ -562,39 +1076,89 @@ const ChallengeDetail = () => {
               <div className="text-sm text-zinc-300 space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-zinc-400">Creator</span>
-                  <span className="font-medium truncate">{(challenge as any).creatorName || (challenge as any).creator || "Unknown"}</span>
+                  <span className="font-medium truncate">
+                    {(challenge as any).creatorName ||
+                      (challenge as any).creator ||
+                      "Unknown"}
+                  </span>
                 </div>
 
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-zinc-400">Created</span>
-                  <span className="text-xs text-zinc-300">{formatDate((challenge as any).createdAt)}</span>
+                  <span className="text-xs text-zinc-300">
+                    {formatDate((challenge as any).createdAt)}
+                  </span>
                 </div>
 
                 <div>
                   <span className="text-xs text-zinc-400">Tags</span>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {((challenge as any).tags || []).length ? ((challenge as any).tags || []).map((t: string) => (
-                      <span key={t} className="text-xs bg-zinc-800 px-2 py-1 rounded-full">{t}</span>
-                    )) : <span className="text-xs text-zinc-500">No tags</span>}
+                    {((challenge as any).tags || []).length ? (
+                      (challenge as any).tags.map((t: string) => (
+                        <span
+                          key={t}
+                          className="text-xs bg-zinc-800 px-2 py-1 rounded-full"
+                        >
+                          {t}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-xs text-zinc-500">No tags</span>
+                    )}
                   </div>
                 </div>
 
                 <div className="mt-3 flex items-center gap-3">
-                  {user && (
-                    <Button variant="ghost" onClick={() => navigate(`/challenge/${challengeId}/participate`)} className="text-sm px-3 py-1 hidden md:inline-flex">
+                  {/* {user && (
+                    <Button
+                      variant="ghost"
+                      onClick={() => navigate(`/challenge/${challengeId}/participate`)}
+                      className="text-sm px-3 py-1 hidden md:inline-flex"
+                    >
                       Participate
                     </Button>
-                  )}
+                  )} */}
 
                   {user && user.id === (challenge as any).creatorId && (
-                    <Button variant="outline" className="text-sm px-3 py-1 hidden md:inline-flex" onClick={handleDelete} disabled={deleteMutation.isLoading}>
-                      {deleteMutation.isLoading ? "Deleting..." : "Delete"}
-                    </Button>
+                    <div className="flex gap-2">
+                      {/* Edit Icon */}
+                      <button
+                        onClick={() =>
+                          navigate(`/challenge/edit/${challengeId}`)
+                        }
+                        className="p-2 border border-zinc-700 rounded-lg hover:bg-zinc-800"
+                        title="Edit challenge"
+                      >
+                        <Pencil size={16} />
+                      </button>
+
+                      {/* Delete Icon */}
+                      <button
+                        onClick={handleDelete}
+                        disabled={deleteMutation.isLoading}
+                        className="p-2 border border-zinc-700 rounded-lg hover:bg-zinc-800"
+                        title="Delete challenge"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   )}
 
                   {user && (
-                    <button onClick={handleToggleBookmark} className="ml-auto text-zinc-400 hover:text-white" aria-label="Toggle bookmark" disabled={addBookmarkMutation.isLoading || removeBookmarkMutation.isLoading}>
-                      {isBookmarked ? <BookmarkCheck size={20} className="text-blue-400" /> : <BookmarkIcon size={20} />}
+                    <button
+                      onClick={handleToggleBookmark}
+                      className="ml-auto text-zinc-400 hover:text-white"
+                      aria-label="Toggle bookmark"
+                      disabled={
+                        addBookmarkMutation.isLoading ||
+                        removeBookmarkMutation.isLoading
+                      }
+                    >
+                      {isBookmarked ? (
+                        <BookmarkCheck size={20} className="text-blue-400" />
+                      ) : (
+                        <BookmarkIcon size={20} />
+                      )}
                     </button>
                   )}
                 </div>
@@ -607,15 +1171,27 @@ const ChallengeDetail = () => {
         <main className="lg:col-span-2 space-y-6">
           <div className="flex items-start justify-between">
             <div>
-              <Link to="/" className="text-sm flex items-center text-zinc-400 hover:text-white gap-1">
+              <Link
+                to="/"
+                className="text-sm flex items-center text-zinc-400 hover:text-white gap-1"
+              >
                 <ChevronLeft size={16} /> Back to feed
               </Link>
-              <h1 className="text-xl md:text-2xl font-semibold mt-2">{(challenge as any).title || "Untitled"}</h1>
-              <p className="text-sm text-zinc-300 mt-1 line-clamp-4">{(challenge as any).description || ""}</p>
+              <h1 className="text-xl md:text-2xl font-semibold mt-2">
+                {(challenge as any).title || "Untitled"}
+              </h1>
+              <p className="text-sm text-zinc-300 mt-1 line-clamp-4">
+                {(challenge as any).description || ""}
+              </p>
             </div>
             <div className="text-sm text-zinc-400 hidden sm:inline">
               <span className="font-mono text-xs">{challengeId}</span>
             </div>
+          </div>
+
+          <div className="text-sm text-zinc-400 mb-2 px-2">
+            🎨 Submit your art as a comment below. Only comments containing an
+            art image will be considered valid submissions.
           </div>
 
           {/* Comment form */}
@@ -626,41 +1202,88 @@ const ChallengeDetail = () => {
                   <div className="mt-1">
                     <div className="flex justify-between text-xs text-zinc-400">
                       <span>Preview</span>
-                      <button type="button" className="hover:text-white" onClick={() => setFile(null)}>Remove</button>
+                      <button
+                        type="button"
+                        className="hover:text-white"
+                        onClick={() => setFile(null)}
+                      >
+                        Remove
+                      </button>
                     </div>
                     <div className="mt-2 w-full sm:w-48 h-28 rounded-md overflow-hidden border border-zinc-800">
                       {file?.type.startsWith("image") ? (
-                        <img src={filePreview} alt="preview" className="w-full h-full object-cover" />
+                        <img
+                          src={filePreview}
+                          alt="preview"
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
-                        <video src={filePreview} className="w-full h-full object-cover" controls />
+                        <video
+                          src={filePreview}
+                          className="w-full h-full object-cover"
+                          controls
+                        />
                       )}
                     </div>
                   </div>
                 )}
                 <div className="flex items-center w-full gap-2">
                   <div className="flex-1">
-                    <Input placeholder="Add a comment..." register={register("text", { required: true })} className="bg-zinc-800 text-sm w-full pr-10" />
+                    <Input
+                      placeholder="Add a comment..."
+                      isComment={true}
+                      register={register("text", { required: true })}
+                      className="bg-zinc-800 text-sm w-full pr-10"
+                    />
                   </div>
-                  <input type="file" accept="image/*,video/*" ref={fileInputRef} onChange={(e) => { const f = e.target.files?.[0]; if(f) setFile(f); }} className="hidden" />
-                  <button type="button" onClick={() => fileInputRef.current?.click()} className="text-zinc-400 hover:text-white flex items-center justify-center p-2" aria-label="Attach file">
+                  <input
+                    type="file"
+                    accept="image/*,video/*"
+                    ref={fileInputRef}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) setFile(f);
+                    }}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="text-zinc-400 hover:text-white flex items-center justify-center p-2"
+                    aria-label="Attach file"
+                  >
                     <Paperclip size={18} />
                   </button>
-                  <Button type="submit" disabled={createCommentMutation.isLoading} className="w-20 h-full text-sm bg-blue-400">
+                  <Button
+                    type="submit"
+                    disabled={createCommentMutation.isLoading}
+                    className="w-20 h-full text-sm bg-blue-400"
+                  >
                     {createCommentMutation.isLoading ? "Posting..." : "Post"}
                   </Button>
                 </div>
-                {createCommentMutation.error && <ErrorMessage message="Failed to post comment" />}
+                {createCommentMutation.error && (
+                  <ErrorMessage message="Failed to post comment" />
+                )}
               </form>
             ) : (
               <div className="text-sm text-zinc-400">
-                <Link to="/login" className="underline">Login</Link> to post a comment.
+                <Link to="/login" className="underline">
+                  Login
+                </Link>{" "}
+                to post a comment.
               </div>
             )}
           </section>
 
           {/* Comments list */}
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold">Comments <span className="text-sm text-zinc-400">({comments?.length || 0})</span></h2>
+            <h2 className="text-lg font-semibold">
+              Comments{" "}
+              <span className="text-sm text-zinc-400">
+                ({comments?.length || 0})
+              </span>
+            </h2>
             {comments.length === 0 ? (
               <div className="bg-zinc-900/50 border border-dashed border-zinc-800 rounded-lg p-6 text-center text-zinc-400">
                 No comments yet — be the first to share a thought.
@@ -680,4 +1303,3 @@ const ChallengeDetail = () => {
 };
 
 export default ChallengeDetail;
-

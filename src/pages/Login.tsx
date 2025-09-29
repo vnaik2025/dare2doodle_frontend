@@ -72,7 +72,8 @@ import Input from "../components/common/Input";
 import Button from "../components/common/Button";
 import ErrorMessage from "../components/common/ErrorMessage";
 import { Link } from "react-router-dom";
-import d2dlog from "../assets/d2dlogo_1.png";
+import logo from '../../public/logo2.png'
+
 
 interface FormData {
   email: string;
@@ -175,12 +176,11 @@ const Login = () => {
       <div className="w-full max-w-sm p-6 rounded-xl border border-gray-800  bg-black ">
         {/* Logo */}
         <div className="flex justify-center mb-4">
-          <img src={d2dlog} alt="daretodoodle_logo.png" className="w-24" />
+          <img src={logo} alt="daretodoodle_logo.png" className="w-50" />
         </div>
 
         {/* Heading + Subtitle */}
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-100">Welcome Back</h2>
           <p className="text-gray-400 text-sm">
             Login to continue your creative doodle journey.
           </p>

@@ -188,19 +188,417 @@
 
 // export default Bookmarks;
 
-// src/pages/Bookmarks.tsx
-import React from "react";
-import { Link } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getBookmarks, deleteBookmark } from "../apis/bookmarksApi";
-import type { Bookmark } from "../apis/bookmarksApi";
-import Loader from "../components/common/Loader";
-import ErrorMessage from "../components/common/ErrorMessage";
-import { Trash2, Eye, Bookmark as BookmarkIcon, Image as ImageIcon } from "lucide-react";
-import { extractImageUrl } from "../utils/url";
+// // src/pages/Bookmarks.tsx
+// import React from "react";
+// import { Link } from "react-router-dom";
+// import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+// import { getBookmarks, deleteBookmark } from "../apis/bookmarksApi";
+// import type { Bookmark } from "../apis/bookmarksApi";
+// import Loader from "../components/common/Loader";
+// import ErrorMessage from "../components/common/ErrorMessage";
+// import { Trash2, Eye, Bookmark as BookmarkIcon, Image as ImageIcon } from "lucide-react";
+// import { extractImageUrl } from "../utils/url";
 
+// const Bookmarks: React.FC = () => {
+//   const queryClient = useQueryClient();
+//   const {
+//     data: bookmarks = [],
+//     isLoading,
+//     error,
+//   } = useQuery<Bookmark[]>({
+//     queryKey: ["bookmarks"],
+//     queryFn: getBookmarks,
+//   });
+
+//   const removeMutation = useMutation({
+//     mutationFn: (challengeId: string) => deleteBookmark(challengeId),
+//     onSuccess: () => {
+//       queryClient.invalidateQueries({ queryKey: ["bookmarks"] });
+//     },
+//   });
+
+//   if (isLoading) return <Loader />;
+//   if (error) return <ErrorMessage message="Failed to load bookmarks" />;
+
+//   return (
+//     <div className="min-h-screen bg-black text-white px-4 py-6">
+//       <div className="max-w-xl mx-auto">
+//         {/* Header */}
+//         <div className="flex items-center justify-between mb-6">
+//           <div className="flex items-center gap-2">
+//             <BookmarkIcon size={22} />
+//             <h1 className="text-lg font-semibold">Bookmarks</h1>
+//           </div>
+//           <span className="text-sm text-zinc-400">{bookmarks.length}</span>
+//         </div>
+
+//         {/* Empty state */}
+//         {bookmarks.length === 0 ? (
+//           <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-6 text-center text-zinc-400">
+//             <div className="flex flex-col items-center gap-3">
+//               <ImageIcon size={32} />
+//               <p>No bookmarks yet</p>
+//             </div>
+//           </div>
+//         ) : (
+//           <ul className="space-y-3">
+//             {bookmarks.map((bm) => {
+//               const ch = (bm as any).challenge;
+//               const challengeId = ch?.$id || ch?.id || (bm.challengeId as string);
+//               const bookmarkId = (bm as any).$id || (bm as any).challengeId || challengeId;
+
+//               return (
+//                 <li
+//                   key={bookmarkId}
+//                   className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"
+//                 >
+//                   <div className="flex items-center gap-3 p-3">
+//                     {/* Thumbnail */}
+//                     <div className="w-20 h-14 flex-shrink-0 rounded-md overflow-hidden bg-zinc-800 border border-zinc-700">
+//                       {ch?.imageUrl ? (
+//                         <img
+//                           src={extractImageUrl(ch.imageUrl)}
+//                           alt="thumbnail"
+//                           className="w-full h-full object-cover"
+//                         />
+//                       ) : (
+//                         <div className="w-full h-full flex items-center justify-center text-xs text-zinc-500">
+//                           <ImageIcon size={16} />
+//                         </div>
+//                       )}
+//                     </div>
+
+//                     {/* Title */}
+//                     <div className="flex-1 min-w-0">
+//                       <h2 className="text-sm font-medium truncate">{ch?.title || "Untitled"}</h2>
+//                     </div>
+
+//                     {/* Actions */}
+//                     <div className="flex items-center gap-2">
+//                       <Link
+//                         to={`/challenge/${challengeId}`}
+//                         className="p-2 rounded-md hover:bg-zinc-800"
+//                         aria-label="View challenge"
+//                       >
+//                         <Eye size={16} />
+//                       </Link>
+//                       <button
+//                         onClick={() => {
+//                           if (!window.confirm("Remove bookmark?")) return;
+//                           removeMutation.mutate(challengeId);
+//                         }}
+//                         disabled={removeMutation.isLoading}
+//                         className="p-2 rounded-md hover:bg-zinc-800"
+//                         aria-label="Remove bookmark"
+//                       >
+//                         <Trash2 size={16} />
+//                       </button>
+//                     </div>
+//                   </div>
+//                 </li>
+//               );
+//             })}
+//           </ul>
+//         )}
+//       </div>
+//     </div>
+//   );
+// };
+
+
+
+// // src/pages/Bookmarks.tsx
+// import React from "react";
+// import { Link } from "react-router-dom";
+// import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+// import { getBookmarks, deleteBookmark } from "../apis/bookmarksApi";
+// import type { Bookmark } from "../apis/bookmarksApi";
+// import ErrorMessage from "../components/common/ErrorMessage";
+// import {
+//   Trash2,
+//   Eye,
+//   Bookmark as BookmarkIcon,
+//   Image as ImageIcon,
+// } from "lucide-react";
+// import { extractImageUrl } from "../utils/url";
+// import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
+// import "react-loading-skeleton/dist/skeleton.css";
+
+// const Bookmarks: React.FC = () => {
+//   const queryClient = useQueryClient();
+
+//   const {
+//     data: bookmarks = [],
+//     isLoading,
+//     error,
+//   } = useQuery<Bookmark[]>({
+//     queryKey: ["bookmarks"],
+//     queryFn: getBookmarks,
+//   });
+
+//   const removeMutation = useMutation({
+//     mutationFn: (challengeId: string) => deleteBookmark(challengeId),
+//     onSuccess: () => {
+//       queryClient.invalidateQueries({ queryKey: ["bookmarks"] });
+//     },
+//   });
+
+//   if (error) return <ErrorMessage message="Failed to load bookmarks" />;
+
+//   return (
+//     <div className="min-h-screen bg-black text-white px-4 py-6">
+//       <div className="max-w-xl mx-auto">
+//         {/* Header */}
+//         <div className="flex items-center justify-between mb-6">
+//           <div className="flex items-center gap-2">
+//             <BookmarkIcon size={22} />
+//             <h1 className="text-lg font-semibold">Bookmarks</h1>
+//           </div>
+//           {!isLoading && (
+//             <span className="text-sm text-zinc-400">{bookmarks.length}</span>
+//           )}
+//         </div>
+
+//         {isLoading ? (
+//           // Skeleton Loader
+//           <SkeletonTheme baseColor="#202020" highlightColor="#444">
+//             <ul className="space-y-3">
+//               {Array.from({ length: 5 }).map((_, idx) => (
+//                 <li
+//                   key={idx}
+//                   className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"
+//                 >
+//                   <div className="flex items-center gap-3 p-3">
+//                     {/* Thumbnail skeleton */}
+//                     <Skeleton
+//                       height={56}
+//                       width={80}
+//                       className="rounded-md flex-shrink-0"
+//                     />
+//                     {/* Title skeleton */}
+//                     <div className="flex-1 min-w-0">
+//                       <Skeleton width="70%" height={18} />
+//                     </div>
+//                     {/* Action icons skeleton */}
+//                     <div className="flex items-center gap-2">
+//                       <Skeleton circle height={28} width={28} />
+//                       <Skeleton circle height={28} width={28} />
+//                     </div>
+//                   </div>
+//                 </li>
+//               ))}
+//             </ul>
+//           </SkeletonTheme>
+//         ) : bookmarks.length === 0 ? (
+//           // Empty state
+//           <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-6 text-center text-zinc-400">
+//             <div className="flex flex-col items-center gap-3">
+//               <ImageIcon size={32} />
+//               <p>No bookmarks yet</p>
+//             </div>
+//           </div>
+//         ) : (
+//           // Bookmarks list
+//           <ul className="space-y-3">
+//             {bookmarks.map((bm) => {
+//               const ch = (bm as any).challenge;
+//               const challengeId =
+//                 ch?.$id || ch?.id || (bm.challengeId as string);
+//               const bookmarkId =
+//                 (bm as any).$id || (bm as any).challengeId || challengeId;
+
+//               return (
+//                 <li
+//                   key={bookmarkId}
+//                   className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"
+//                 >
+//                   <div className="flex items-center gap-3 p-3">
+//                     {/* Thumbnail */}
+//                     <div className="w-20 h-14 flex-shrink-0 rounded-md overflow-hidden bg-zinc-800 border border-zinc-700">
+//                       {ch?.imageUrl ? (
+//                         <img
+//                           src={extractImageUrl(ch.imageUrl)}
+//                           alt="thumbnail"
+//                           className="w-full h-full object-cover"
+//                         />
+//                       ) : (
+//                         <div className="w-full h-full flex items-center justify-center text-xs text-zinc-500">
+//                           <ImageIcon size={16} />
+//                         </div>
+//                       )}
+//                     </div>
+
+//                     {/* Title */}
+//                     <div className="flex-1 min-w-0">
+//                       <h2 className="text-sm font-medium truncate">
+//                         {ch?.title || "Untitled"}
+//                       </h2>
+//                     </div>
+
+//                     {/* Actions */}
+//                     <div className="flex items-center gap-2">
+//                       <Link
+//                         to={`/challenge/${challengeId}`}
+//                         className="p-2 rounded-md hover:bg-zinc-800 transition"
+//                         aria-label="View challenge"
+//                       >
+//                         <Eye size={16} />
+//                       </Link>
+//                       <button
+//                         onClick={() => {
+//                           if (!window.confirm("Remove bookmark?")) return;
+//                           removeMutation.mutate(challengeId);
+//                         }}
+//                         disabled={removeMutation.isLoading}
+//                         className="p-2 rounded-md hover:bg-zinc-800 transition disabled:opacity-50"
+//                         aria-label="Remove bookmark"
+//                       >
+//                         <Trash2 size={16} />
+//                       </button>
+//                     </div>
+//                   </div>
+//                 </li>
+//               );
+//             })}
+//           </ul>
+//         )}
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default Bookmarks;
+
+
+
+// src/pages/Bookmarks.tsx
+import React, { memo } from "react";
+import { Link } from "react-router-dom";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
+import {
+  getBookmarks,
+  deleteBookmark,
+} from "../apis/bookmarksApi";
+import type { Bookmark } from "../apis/bookmarksApi";
+import ErrorMessage from "../components/common/ErrorMessage";
+import {
+  Trash2,
+  Eye,
+  Bookmark as BookmarkIcon,
+  Image as ImageIcon,
+} from "lucide-react";
+import { extractImageUrl } from "../utils/url";
+import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
+
+// ------------------
+// Skeleton Loader
+// ------------------
+const BookmarkSkeleton = () => (
+  <li className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+    <div className="flex items-center gap-3 p-3">
+      <Skeleton height={56} width={80} className="rounded-md flex-shrink-0" />
+      <div className="flex-1 min-w-0">
+        <Skeleton width="70%" height={18} />
+      </div>
+      <div className="flex items-center gap-2">
+        <Skeleton circle height={28} width={28} />
+        <Skeleton circle height={28} width={28} />
+      </div>
+    </div>
+  </li>
+);
+
+// ------------------
+// Empty State
+// ------------------
+const EmptyState = () => (
+  <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-6 text-center text-zinc-400">
+    <div className="flex flex-col items-center gap-3">
+      <ImageIcon size={32} />
+      <p>No bookmarks yet</p>
+    </div>
+  </div>
+);
+
+// ------------------
+// Bookmark Card
+// ------------------
+type BookmarkCardProps = {
+  bm: Bookmark;
+  onRemove: (id: string) => void;
+  removing: boolean;
+};
+
+const BookmarkCard = memo(({ bm, onRemove, removing }: BookmarkCardProps) => {
+  const ch = (bm as any).challenge;
+  const challengeId =
+    ch?.$id || ch?.id || (bm.challengeId as string);
+  const bookmarkId =
+    (bm as any).$id || (bm as any).challengeId || challengeId;
+
+  return (
+    <li
+      key={bookmarkId}
+      className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"
+    >
+      <div className="flex items-center gap-3 p-3">
+        {/* Thumbnail */}
+        <div className="w-20 h-14 flex-shrink-0 rounded-md overflow-hidden bg-zinc-800 border border-zinc-700">
+          {ch?.imageUrl ? (
+            <img
+              src={extractImageUrl(ch.imageUrl)}
+              alt="thumbnail"
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-xs text-zinc-500">
+              <ImageIcon size={16} />
+            </div>
+          )}
+        </div>
+
+        {/* Title */}
+        <div className="flex-1 min-w-0">
+          <h2 className="text-sm font-medium truncate">
+            {ch?.title || "Untitled"}
+          </h2>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-2">
+          <Link
+            to={`/challenge/${challengeId}`}
+            className="p-2 rounded-md hover:bg-zinc-800 transition"
+            aria-label="View challenge"
+          >
+            <Eye size={16} />
+          </Link>
+          <button
+            onClick={() => onRemove(challengeId)}
+            disabled={removing}
+            className="p-2 rounded-md hover:bg-zinc-800 transition disabled:opacity-50"
+            aria-label="Remove bookmark"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      </div>
+    </li>
+  );
+});
+
+// ------------------
+// Main Component
+// ------------------
 const Bookmarks: React.FC = () => {
   const queryClient = useQueryClient();
+
   const {
     data: bookmarks = [],
     isLoading,
@@ -212,12 +610,31 @@ const Bookmarks: React.FC = () => {
 
   const removeMutation = useMutation({
     mutationFn: (challengeId: string) => deleteBookmark(challengeId),
-    onSuccess: () => {
+    // Optimistic update for speed
+    onMutate: async (challengeId: string) => {
+      await queryClient.cancelQueries({ queryKey: ["bookmarks"] });
+      const prevData = queryClient.getQueryData<Bookmark[]>(["bookmarks"]);
+
+      queryClient.setQueryData<Bookmark[]>(["bookmarks"], (old) =>
+        old?.filter((bm: any) => {
+          const ch = bm.challenge;
+          const id = ch?.$id || ch?.id || bm.challengeId;
+          return id !== challengeId;
+        }) || []
+      );
+
+      return { prevData };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.prevData) {
+        queryClient.setQueryData(["bookmarks"], context.prevData);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["bookmarks"] });
     },
   });
 
-  if (isLoading) return <Loader />;
   if (error) return <ErrorMessage message="Failed to load bookmarks" />;
 
   return (
@@ -229,75 +646,37 @@ const Bookmarks: React.FC = () => {
             <BookmarkIcon size={22} />
             <h1 className="text-lg font-semibold">Bookmarks</h1>
           </div>
-          <span className="text-sm text-zinc-400">{bookmarks.length}</span>
+          {!isLoading && (
+            <span className="text-sm text-zinc-400">
+              {bookmarks.length}
+            </span>
+          )}
         </div>
 
-        {/* Empty state */}
-        {bookmarks.length === 0 ? (
-          <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-6 text-center text-zinc-400">
-            <div className="flex flex-col items-center gap-3">
-              <ImageIcon size={32} />
-              <p>No bookmarks yet</p>
-            </div>
-          </div>
+        {isLoading ? (
+          <SkeletonTheme baseColor="#202020" highlightColor="#444">
+            <ul className="space-y-3">
+              {Array.from({ length: 5 }).map((_, idx) => (
+                <BookmarkSkeleton key={idx} />
+              ))}
+            </ul>
+          </SkeletonTheme>
+        ) : bookmarks.length === 0 ? (
+          <EmptyState />
         ) : (
           <ul className="space-y-3">
-            {bookmarks.map((bm) => {
-              const ch = (bm as any).challenge;
-              const challengeId = ch?.$id || ch?.id || (bm.challengeId as string);
-              const bookmarkId = (bm as any).$id || (bm as any).challengeId || challengeId;
-
-              return (
-                <li
-                  key={bookmarkId}
-                  className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"
-                >
-                  <div className="flex items-center gap-3 p-3">
-                    {/* Thumbnail */}
-                    <div className="w-20 h-14 flex-shrink-0 rounded-md overflow-hidden bg-zinc-800 border border-zinc-700">
-                      {ch?.imageUrl ? (
-                        <img
-                          src={extractImageUrl(ch.imageUrl)}
-                          alt="thumbnail"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-xs text-zinc-500">
-                          <ImageIcon size={16} />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Title */}
-                    <div className="flex-1 min-w-0">
-                      <h2 className="text-sm font-medium truncate">{ch?.title || "Untitled"}</h2>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-2">
-                      <Link
-                        to={`/challenge/${challengeId}`}
-                        className="p-2 rounded-md hover:bg-zinc-800"
-                        aria-label="View challenge"
-                      >
-                        <Eye size={16} />
-                      </Link>
-                      <button
-                        onClick={() => {
-                          if (!window.confirm("Remove bookmark?")) return;
-                          removeMutation.mutate(challengeId);
-                        }}
-                        disabled={removeMutation.isLoading}
-                        className="p-2 rounded-md hover:bg-zinc-800"
-                        aria-label="Remove bookmark"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </div>
-                </li>
-              );
-            })}
+            {bookmarks.map((bm) => (
+              <BookmarkCard
+                key={(bm as any).$id || (bm as any).challengeId}
+                bm={bm}
+                onRemove={(id) => {
+                  if (window.confirm("Remove bookmark?")) {
+                    removeMutation.mutate(id);
+                  }
+                }}
+                removing={removeMutation.isLoading}
+              />
+            ))}
           </ul>
         )}
       </div>

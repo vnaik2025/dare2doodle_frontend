@@ -251,7 +251,6 @@
 // export const getFollowStatusApi = (targetId: string) =>
 //   api.get(`/users/follow-status/${targetId}`).then((res) => res.data);
 
-
 import api from ".";
 
 export interface User {
@@ -277,6 +276,17 @@ export interface Comment {
   nsfw: boolean;
 }
 
+export interface Challenge {
+  id: string;
+  title: string;
+  description: string;
+  imageUrl?: string;
+  artStyle?: string;
+  tags?: string[];
+  nsfw: boolean;
+  creatorId: string;
+}
+
 export const getProfile = () =>
   api.get<{ user: User; submissions: Comment[]; likedPosts: any[]; commentedPosts: any[]; bookmarks: any[]; notifications: any[] }>("/users/profile").then((res) => res.data);
 
@@ -288,6 +298,9 @@ export const getLikedPosts = () =>
 
 export const getCommentedPosts = () =>
   api.get<Comment[]>("/users/commented-posts").then((res) => res.data);
+
+export const getUserChallenges = (userId: string) =>
+  api.get<Challenge[]>(`/users/${userId}/challenges`).then((res) => res.data);
 
 export const getUserById = (userId: string) =>
   api.get<User>(`/users/${userId}`).then((res) => res.data);
@@ -344,8 +357,6 @@ export const togglePrivacyApi = (makePrivate: boolean) =>
 
 export const getFollowStatusApi = (targetId: string) =>
   api.get(`/users/follow-status/${targetId}`).then((res) => res.data);
-
-
 
 export const getBlockedUsersApi = () =>
   api.get(`/users/blocked`).then((res) => res.data);

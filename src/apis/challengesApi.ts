@@ -7,25 +7,32 @@ export interface Challenge {
   imageUrl?: string;
   artStyle?: string;
   tags?: string[];
-  nsfw: boolean;
+  nsfw?: boolean;
 }
 
-// ✅ Return the actual data (array of challenges), not the whole AxiosResponse
+// ✅ Get all challenges
 export const getChallenges = async (): Promise<Challenge[]> => {
   const response = await api.get<Challenge[]>('/challenges');
   return response.data;
 };
 
-// ✅ Fetch a specific challenge by ID
+// ✅ Fetch single challenge
 export const getChallenge = async (id: string): Promise<Challenge> => {
   const response = await api.get<Challenge>(`/challenges/challenge/${id}`);
   return response.data;
 };
 
+// ✅ Create challenge (FormData required)
 export const createChallenge = (data: FormData) =>
-  api.post('/challenges', data, { headers: { 'Content-Type': 'multipart/form-data' } });
+  api.post('/challenges', data, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
 
-export const updateChallenge = (id: string, data: { title?: string; description?: string }) =>
-  api.patch(`/challenges/${id}`, data);
+// ✅ Update challenge (also FormData)
+export const updateChallenge = (id: string, data: FormData) =>
+  api.patch(`/challenges/${id}`, data, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
 
+// ✅ Delete challenge
 export const deleteChallenge = (id: string) => api.delete(`/challenges/${id}`);
