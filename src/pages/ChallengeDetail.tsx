@@ -863,6 +863,8 @@
 
 // export default ChallengeDetail;
 
+
+
 // src/pages/ChallengeDetail.tsx
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
@@ -1074,14 +1076,7 @@ const ChallengeDetail = () => {
               <ChallengeCard challenge={challenge as any} />
 
               <div className="text-sm text-zinc-300 space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-zinc-400">Creator</span>
-                  <span className="font-medium truncate">
-                    {(challenge as any).creatorName ||
-                      (challenge as any).creator ||
-                      "Unknown"}
-                  </span>
-                </div>
+                
 
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-zinc-400">Created</span>
@@ -1091,21 +1086,7 @@ const ChallengeDetail = () => {
                 </div>
 
                 <div>
-                  <span className="text-xs text-zinc-400">Tags</span>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {((challenge as any).tags || []).length ? (
-                      (challenge as any).tags.map((t: string) => (
-                        <span
-                          key={t}
-                          className="text-xs bg-zinc-800 px-2 py-1 rounded-full"
-                        >
-                          {t}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-xs text-zinc-500">No tags</span>
-                    )}
-                  </div>
+                  
                 </div>
 
                 <div className="mt-3 flex items-center gap-3">
@@ -1184,9 +1165,7 @@ const ChallengeDetail = () => {
                 {(challenge as any).description || ""}
               </p>
             </div>
-            <div className="text-sm text-zinc-400 hidden sm:inline">
-              <span className="font-mono text-xs">{challengeId}</span>
-            </div>
+          
           </div>
 
           <div className="text-sm text-zinc-400 mb-2 px-2">

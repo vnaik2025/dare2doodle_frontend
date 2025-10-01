@@ -26,3 +26,5 @@ export const getCommentById = async (id: string): Promise<Comment> => {
   const response = await api.get<Comment>(`/comments/comment/${id}`);
   return response.data;
 };
+
+export const markAsSubmission = (id: string) => api.put(`/comments/${id}/submission`);

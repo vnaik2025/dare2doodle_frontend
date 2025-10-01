@@ -461,6 +461,8 @@
 // };
 
 // export default Feed;
+
+
 // src/pages/Feed.tsx
 import React, { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -641,41 +643,16 @@ const Feed: React.FC = () => {
     refetchOnWindowFocus: false,
   });
 
-  // Add Bookmark Mutation
-  const addBookmarkMutation = useMutation({
-    mutationFn: (challengeId: string) => createBookmark({ challengeId }),
-    onMutate: async (challengeId: string) => {
-      await queryClient.cancelQueries({ queryKey: ["bookmarks"] });
-      const previous = queryClient.getQueryData<any[]>(["bookmarks"]) || [];
-      queryClient.setQueryData(["bookmarks"], [
-        ...previous,
-        { challengeId, userId: user?.id },
-      ]);
-      return { previous };
-    },
-    onError: (_err, _vars, ctx) => {
-      if (ctx?.previous) queryClient.setQueryData(["bookmarks"], ctx.previous);
-    },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: ["bookmarks"] }),
-  });
+const addBookmarkMutation = useMutation({
+  mutationFn: (challengeId: string) => createBookmark({ challengeId }),
+  onSuccess: () => queryClient.invalidateQueries({ queryKey: ["bookmarks"] }),
+});
 
-  // Remove Bookmark Mutation
-  const removeBookmarkMutation = useMutation({
-    mutationFn: (challengeId: string) => deleteBookmark(challengeId),
-    onMutate: async (challengeId: string) => {
-      await queryClient.cancelQueries({ queryKey: ["bookmarks"] });
-      const previous = queryClient.getQueryData<any[]>(["bookmarks"]) || [];
-      queryClient.setQueryData(
-        ["bookmarks"],
-        previous.filter((b: any) => b.challengeId !== challengeId)
-      );
-      return { previous };
-    },
-    onError: (_err, _vars, ctx) => {
-      if (ctx?.previous) queryClient.setQueryData(["bookmarks"], ctx.previous);
-    },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: ["bookmarks"] }),
-  });
+const removeBookmarkMutation = useMutation({
+  mutationFn: (challengeId: string) => deleteBookmark(challengeId),
+  onSuccess: () => queryClient.invalidateQueries({ queryKey: ["bookmarks"] }),
+});
+
 
   const handleToggleBookmark = (challengeId: string, isBookmarked: boolean) => {
     if (!user) {

@@ -273,12 +273,282 @@
 // };
 
 
+// // src/components/features/Comment.tsx
+// import { useMutation, useQueryClient } from "@tanstack/react-query";
+// import { deleteComment, createComment } from "../../apis/commentsApi";
+// import LikeButton from "./LikeButton";
+// import type { Comment as CommentType } from "../../apis/commentsApi";
+// import { Trash2, Reply, Share2, Paperclip, Send } from "lucide-react";
+// import { useState, useRef, useEffect } from "react";
+// import Avatar from "../common/Avatar";
+// import Input from "../common/Input";
+// import { useUser } from "../../hooks/useUser";
+// import { useAuth } from "../../hooks/useAuth";
+// import { useNavigate } from "react-router-dom";
+
+// interface CommentProps {
+//   comment: CommentType;
+//   depth?: number;
+// }
+
+// const Comment = ({ comment, depth = 0 }: CommentProps) => {
+//   const queryClient = useQueryClient();
+//   const [showReplyBox, setShowReplyBox] = useState(false);
+//   const [file, setFile] = useState<File | null>(null);
+//   const [filePreview, setFilePreview] = useState<string | null>(null);
+//   const fileInputRef = useRef<HTMLInputElement>(null);
+//   const [replyText, setReplyText] = useState("");
+//   const { user } = useAuth();
+//   const navigate = useNavigate();
+
+//   const { data: commentUser, isLoading: userLoading } = useUser(comment.userId);
+
+//   const deleteMutation = useMutation({
+//     mutationFn: () => deleteComment(comment.$id),
+//     onSuccess: () => {
+//       queryClient.invalidateQueries({
+//         queryKey: ["comments", comment.challengeId],
+//       });
+//     },
+//   });
+
+//   const replyMutation = useMutation({
+//     mutationFn: (formData: FormData) => createComment(formData),
+//     onSuccess: () => {
+//       queryClient.invalidateQueries({
+//         queryKey: ["comments", comment.challengeId],
+//       });
+//       setReplyText("");
+//       setFile(null);
+//       setFilePreview(null);
+//       setShowReplyBox(false);
+//     },
+//   });
+
+//   useEffect(() => {
+//     if (!file) {
+//       setFilePreview(null);
+//       return;
+//     }
+//     const url = URL.createObjectURL(file);
+//     setFilePreview(url);
+//     return () => URL.revokeObjectURL(url);
+//   }, [file]);
+
+//   const handleFileClick = () => {
+//     fileInputRef.current?.click();
+//   };
+
+//   const handleShare = () => {
+//     const commentLink = `${window.location.origin}/challenges/${comment.challengeId}`;
+//     navigator.clipboard.writeText(commentLink);
+//     alert("Comment link copied to clipboard!");
+//   };
+
+//   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+//     const f = e.target.files?.[0];
+//     if (f) setFile(f);
+//   };
+
+//   const handleReplySubmit = () => {
+//     if (!replyText.trim() && !file) return;
+
+//     const formData = new FormData();
+//     formData.append("challengeId", comment.challengeId);
+//     formData.append("text", replyText);
+//     formData.append("parentCommentId", comment.$id);
+//     if (file) formData.append("media", file);
+
+//     replyMutation.mutate(formData);
+//   };
+
+//   return (
+//     <div className="flex flex-col">
+//       <div
+//         className="flex items-start gap-2 p-2 rounded-lg bg-zinc-900/40 border border-zinc-800"
+//         style={{ marginLeft: depth * 20 }}
+//       >
+//         {userLoading ? (
+//           // Avatar skeleton
+//           <div className="w-7 h-7 rounded-full bg-zinc-800 animate-pulse" />
+//         ) : (
+//           <Avatar
+//             name={commentUser?.username || "Guest"}
+//             size={28}
+//             className="flex-shrink-0 cursor-pointer"
+//             onClick={() =>
+//               commentUser && navigate(`/profile/${commentUser.id}`)
+//             }
+//           />
+//         )}
+
+//         <div className="flex-1 min-w-0">
+//           {userLoading ? (
+//             // Username + text skeleton
+//             <div className="space-y-2">
+//               <div className="h-3 w-24 bg-zinc-800 rounded animate-pulse" />
+//               <div className="h-3 w-full max-w-sm bg-zinc-800 rounded animate-pulse" />
+//             </div>
+//           ) : (
+//             <>
+//               <p
+//                 onClick={() =>
+//                   commentUser && navigate(`/profile/${commentUser.id}`)
+//                 }
+//                 className="text-xs font-semibold text-zinc-400 cursor-pointer hover:text-white"
+//               >
+//                 {commentUser?.username || "Guest"}
+//               </p>
+
+//               <p className="text-sm leading-snug text-zinc-200">
+//                 {comment.text}
+//               </p>
+//             </>
+//           )}
+
+//          {comment.mediaUrl && (
+//   <div className="mt-2 max-w-xs rounded-md overflow-hidden border border-zinc-700">
+//     {(() => {
+//       // Extract URL before the '|' if exists
+//       const mediaUrl = comment.mediaUrl.split("|")[0];
+//       const isImage = mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+//       return isImage ? (
+//         <img
+//           src={mediaUrl}
+//           alt="comment media"
+//           className="w-full h-auto object-cover"
+//         />
+//       ) : (
+//         <video
+//           src={mediaUrl}
+//           className="w-full h-auto object-cover"
+//           controls
+//         />
+//       );
+//     })()}
+//   </div>
+// )}
+
+//           {!userLoading && (
+//             <div className="mt-1 flex items-center gap-3 text-xs text-zinc-500">
+//               <button
+//                 onClick={() => setShowReplyBox((s) => !s)}
+//                 className="p-1 rounded hover:bg-zinc-800 transition-colors"
+//                 aria-label="Reply"
+//               >
+//                 <Reply size={14} className="text-zinc-400 hover:text-white" />
+//               </button>
+
+//               <LikeButton targetId={comment.$id} targetType="comment" />
+
+//               <button
+//                 onClick={handleShare}
+//                 className="p-1 rounded hover:bg-zinc-800 transition-colors"
+//                 aria-label="Share"
+//               >
+//                 <Share2 size={14} className="text-zinc-400 hover:text-white" />
+//               </button>
+
+//               <button
+//                 onClick={() => deleteMutation.mutate()}
+//                 disabled={deleteMutation.isPending}
+//                 className="p-1 rounded hover:bg-zinc-800 transition-colors"
+//                 aria-label="Delete"
+//               >
+//                 <Trash2
+//                   size={14}
+//                   className="text-zinc-400 hover:text-red-400"
+//                 />
+//               </button>
+//             </div>
+//           )}
+
+//           {showReplyBox && !userLoading && (
+//             <div className="mt-2 space-y-2">
+//               {filePreview && (
+//                 <div className="w-40 h-24 rounded-md overflow-hidden border border-zinc-700">
+//                   {file && file.type.startsWith("image") ? (
+//                     <img
+//                       src={filePreview}
+//                       alt="preview"
+//                       className="w-full h-full object-cover"
+//                     />
+//                   ) : (
+//                     <video
+//                       src={filePreview}
+//                       className="w-full h-full object-cover"
+//                       controls
+//                     />
+//                   )}
+//                 </div>
+//               )}
+
+//               <div className="flex items-center gap-2 flex-nowrap">
+//                 <Input
+//                   value={replyText}
+//                   onChange={(e) => setReplyText(e.target.value)}
+//                   placeholder="Write a reply..."
+//                   isComment={true}
+//                   className="flex-1 min-w-0"
+//                 />
+
+//                 <input
+//                   type="file"
+//                   accept="image/*,video/*"
+//                   ref={fileInputRef}
+//                   onChange={handleFileChange}
+//                   className="hidden"
+//                 />
+
+//                 <button
+//                   type="button"
+//                   onClick={handleFileClick}
+//                   className="p-2 rounded hover:bg-zinc-800 transition-colors flex-shrink-0"
+//                   aria-label="Attach file"
+//                 >
+//                   <Paperclip size={16} className="text-zinc-400" />
+//                 </button>
+
+//                 <button
+//                   type="button"
+//                   onClick={handleReplySubmit}
+//                   disabled={replyMutation.isPending}
+//                   className="p-2 rounded bg-blue-500 hover:bg-blue-600 text-white flex-shrink-0"
+//                   aria-label="Send reply"
+//                 >
+//                   {replyMutation.isPending ? (
+//                     <span className="text-xs">...</span>
+//                   ) : (
+//                     <Send size={16} />
+//                   )}
+//                 </button>
+//               </div>
+//             </div>
+//           )}
+
+//           {comment.replies && comment.replies.length > 0 && (
+//             <div className="mt-2 space-y-2 border-l border-zinc-800 pl-4 ml-2">
+//               {comment.replies.map((reply) => (
+//                 <Comment key={reply.id} comment={reply} depth={depth + 1} />
+//               ))}
+//             </div>
+//           )}
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default Comment;
+
+
+
 // src/components/features/Comment.tsx
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { deleteComment, createComment } from "../../apis/commentsApi";
+import { deleteComment, createComment, markAsSubmission } from "../../apis/commentsApi";
 import LikeButton from "./LikeButton";
 import type { Comment as CommentType } from "../../apis/commentsApi";
-import { Trash2, Reply, Share2, Paperclip, Send } from "lucide-react";
+import { Trash2, Reply, Share2, Paperclip, Send, CheckCircle, XCircle } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import Avatar from "../common/Avatar";
 import Input from "../common/Input";
@@ -325,6 +595,15 @@ const Comment = ({ comment, depth = 0 }: CommentProps) => {
     },
   });
 
+  const submissionMutation = useMutation({
+    mutationFn: () => markAsSubmission(comment.$id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["comments", comment.challengeId],
+      });
+    },
+  });
+
   useEffect(() => {
     if (!file) {
       setFilePreview(null);
@@ -362,10 +641,27 @@ const Comment = ({ comment, depth = 0 }: CommentProps) => {
     replyMutation.mutate(formData);
   };
 
+  const handleMarkAsSubmission = () => {
+    submissionMutation.mutate();
+  };
+
+  const canMarkAsSubmission = 
+    !comment.parentCommentId && 
+    comment.mediaUrl && 
+    user && 
+    comment.userId === user.id;
+
+  const isCurrentlySubmission = comment.isSubmission ?? false;
+
+  const commentContainerClass = [
+    "flex items-start gap-2 p-2 rounded-lg bg-zinc-900/40 border border-zinc-800",
+    isCurrentlySubmission ? "bg-green-900/10 border-green-500/30" : "",
+  ].join(" ");
+
   return (
     <div className="flex flex-col">
       <div
-        className="flex items-start gap-2 p-2 rounded-lg bg-zinc-900/40 border border-zinc-800"
+        className={commentContainerClass}
         style={{ marginLeft: depth * 20 }}
       >
         {userLoading ? (
@@ -391,14 +687,21 @@ const Comment = ({ comment, depth = 0 }: CommentProps) => {
             </div>
           ) : (
             <>
-              <p
-                onClick={() =>
-                  commentUser && navigate(`/profile/${commentUser.id}`)
-                }
-                className="text-xs font-semibold text-zinc-400 cursor-pointer hover:text-white"
-              >
-                {commentUser?.username || "Guest"}
-              </p>
+              <div className="flex items-center gap-2">
+                <p
+                  onClick={() =>
+                    commentUser && navigate(`/profile/${commentUser.id}`)
+                  }
+                  className="text-xs font-semibold text-zinc-400 cursor-pointer hover:text-white"
+                >
+                  {commentUser?.username || "Guest"}
+                </p>
+                {isCurrentlySubmission && (
+                  <span className="px-2 py-0.5 bg-green-900/50 border border-green-500/30 text-green-300 text-xs rounded-full">
+                    Submission
+                  </span>
+                )}
+              </div>
 
               <p className="text-sm leading-snug text-zinc-200">
                 {comment.text}
@@ -406,31 +709,45 @@ const Comment = ({ comment, depth = 0 }: CommentProps) => {
             </>
           )}
 
-         {comment.mediaUrl && (
-  <div className="mt-2 max-w-xs rounded-md overflow-hidden border border-zinc-700">
-    {(() => {
-      // Extract URL before the '|' if exists
-      const mediaUrl = comment.mediaUrl.split("|")[0];
-      const isImage = mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i);
-      return isImage ? (
-        <img
-          src={mediaUrl}
-          alt="comment media"
-          className="w-full h-auto object-cover"
-        />
-      ) : (
-        <video
-          src={mediaUrl}
-          className="w-full h-auto object-cover"
-          controls
-        />
-      );
-    })()}
-  </div>
-)}
+          {comment.mediaUrl && (
+            <div className="mt-2 max-w-xs rounded-md overflow-hidden border border-zinc-700">
+              {(() => {
+                // Extract URL before the '|' if exists
+                const mediaUrl = comment.mediaUrl.split("|")[0];
+                const isImage = mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+                return isImage ? (
+                  <img
+                    src={mediaUrl}
+                    alt="comment media"
+                    className="w-full h-auto object-cover"
+                  />
+                ) : (
+                  <video
+                    src={mediaUrl}
+                    className="w-full h-auto object-cover"
+                    controls
+                  />
+                );
+              })()}
+            </div>
+          )}
 
           {!userLoading && (
             <div className="mt-1 flex items-center gap-3 text-xs text-zinc-500">
+              {canMarkAsSubmission && (
+                <button
+                  onClick={handleMarkAsSubmission}
+                  disabled={submissionMutation.isPending}
+                  className={`flex items-center gap-1 p-1 rounded hover:bg-zinc-800 transition-colors ${isCurrentlySubmission ? 'text-red-400' : 'text-green-400'}`}
+                  aria-label={isCurrentlySubmission ? "Unmark as submission" : "Mark as submission"}
+                >
+                  {isCurrentlySubmission ? <XCircle size={14} /> : <CheckCircle size={14} />}
+                  <span className="text-xs">
+                    {isCurrentlySubmission ? "Unmark as submission" : "Mark as submission"}
+                  </span>
+                </button>
+              )}
+
               <button
                 onClick={() => setShowReplyBox((s) => !s)}
                 className="p-1 rounded hover:bg-zinc-800 transition-colors"
@@ -529,7 +846,7 @@ const Comment = ({ comment, depth = 0 }: CommentProps) => {
           {comment.replies && comment.replies.length > 0 && (
             <div className="mt-2 space-y-2 border-l border-zinc-800 pl-4 ml-2">
               {comment.replies.map((reply) => (
-                <Comment key={reply.id} comment={reply} depth={depth + 1} />
+                <Comment key={reply.$id} comment={reply} depth={depth + 1} />
               ))}
             </div>
           )}

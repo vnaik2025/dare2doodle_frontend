@@ -273,7 +273,7 @@ const Home = () => {
   if (error) return <ErrorMessage message="Failed to load challenges" />;
 
   return (
-    <div className="h-full flex flex-col bg-black text-white">
+    <div className="h-full max-w-1xl flex flex-col bg-black text-white">
       {/* 🔥 Title + Create Button */}
       <div className="flex flex-col md:flex-row justify-between items-center px-4 py-4 md:py-6 gap-3">
         <div className="flex flex-col items-center md:items-start">
